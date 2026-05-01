@@ -6,23 +6,73 @@
     <title>KPI Picking - Dashboard Real-Time</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;600;800&display=swap" rel="stylesheet">
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap');
-        body { font-family: 'Inter', sans-serif; background-color: #f8fafc; }
-        .table-container { overflow-x: auto; max-height: 500px; box-shadow: inset 0 -2px 4px rgba(0,0,0,0.05); }
-        table { width: 100%; border-collapse: separate; border-spacing: 0; }
-        thead th { 
-            position: sticky; top: 0; background: #0f172a; color: white; 
-            padding: 14px; text-align: left; font-size: 0.7rem; text-transform: uppercase;
-            letter-spacing: 0.05em; cursor: pointer; z-index: 10;
+        body { 
+            font-family: 'Lexend', sans-serif; 
+            background-color: #121212; 
+            color: #e2e8f0;
         }
-        tbody tr:nth-child(even) { background-color: #f1f5f9; }
-        tbody td { padding: 12px 14px; border-bottom: 1px solid #e2e8f0; font-size: 0.85rem; color: #334155; }
-        .kpi-card { background: white; border-radius: 12px; overflow: hidden; border: 1px solid #e2e8f0; margin-bottom: 2.5rem; }
-        .status-badge { padding: 4px 8px; border-radius: 6px; font-weight: bold; font-size: 0.75rem; }
+        
+        /* Layout de 3 columnas */
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1rem;
+            align-items: start;
+        }
+
+        .table-container { 
+            overflow-x: auto; 
+            max-height: 600px; 
+            background: #1e1e1e;
+        }
+
+        table { width: 100%; border-collapse: collapse; }
+        thead th { 
+            position: sticky; top: 0; background: #2d2d2d; color: #94a3b8; 
+            padding: 10px; text-align: left; font-size: 0.65rem; text-transform: uppercase;
+            z-index: 10; border-bottom: 2px solid #404040;
+        }
+        tbody tr { border-bottom: 1px solid #2d2d2d; }
+        tbody tr:hover { background-color: #262626; }
+        tbody td { padding: 10px; font-size: 0.75rem; color: #cbd5e1; }
+
+        .kpi-card { 
+            background: #1e1e1e; border-radius: 8px; overflow: hidden; 
+            border: 1px solid #333; height: 100%;
+        }
+
+        /* Animación Estilo PSP */
+        @keyframes psp-shimmer {
+            0% { background-position: -200% 0; }
+            100% { background-position: 200% 0; }
+        }
+
+        .psp-header {
+            padding: 12px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            background-size: 200% auto;
+            animation: psp-shimmer 4s linear infinite;
+            color: white;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .bg-muelle { background-image: linear-gradient(90deg, #1e3a8a 0%, #3b82f6 50%, #1e3a8a 100%); }
+        .bg-etiquetado { background-image: linear-gradient(90deg, #581c87 0%, #a855f7 50%, #581c87 100%); }
+        .bg-inyeccion { background-image: linear-gradient(90deg, #7c2d12 0%, #f97316 50%, #7c2d12 100%); }
+
+        .status-badge { padding: 2px 6px; border-radius: 4px; font-weight: bold; font-size: 0.7rem; }
+        
+        header { background-color: #630d0d; } /* Rojo Guindo */
+
         .loading-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(255,255,255,0.9); display: flex; flex-direction: column;
+            background: rgba(0,0,0,0.85); display: flex; flex-direction: column;
             justify-content: center; align-items: center; z-index: 1000;
         }
     </style>
@@ -30,253 +80,218 @@
 <body>
 
     <div id="loader" class="loading-overlay">
-        <div class="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-blue-600 mb-4"></div>
-        <h2 class="text-xl font-bold text-slate-800">Cargando Datos de Picking...</h2>
-        <p class="text-slate-500">Sincronizando con Google Sheets</p>
+        <div class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-white mb-4"></div>
+        <h2 class="text-lg font-bold">Sincronizando...</h2>
     </div>
 
-    <header class="bg-white border-b border-slate-200 p-6 mb-8">
-        <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
+    <header class="p-4 shadow-xl border-b border-red-900">
+        <div class="max-w-[1600px] mx-auto flex justify-between items-center">
             <div>
-                <h1 class="text-2xl font-extrabold text-slate-900 tracking-tight">OPERACIONES: PICKING KPI</h1>
-                <p class="text-slate-500 text-sm">Visualización consolidada de Muelle, Inyección y Etiquetado</p>
+                <h1 class="text-xl font-extrabold tracking-tighter text-white">PICKING KPI DASHBOARD</h1>
+                <p class="text-red-200 text-xs opacity-80">Control de Operaciones Real-Time</p>
             </div>
             <div class="flex items-center gap-4">
-                <div class="flex flex-col">
-                    <label for="filter-semana" class="text-xs font-bold text-slate-500 uppercase mb-1">Filtrar por Semana</label>
-                    <select id="filter-semana" onchange="applyFilters()" class="bg-slate-100 border border-slate-300 text-slate-700 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2">
-                        <option value="all">Todas las Semanas</option>
-                    </select>
-                </div>
-                <button onclick="fetchExcel()" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded-lg transition-all shadow-md mt-4 md:mt-0">
-                    Sincronizar Excel
+                <select id="filter-semana" onchange="applyFilters()" class="bg-black/30 border border-red-400 text-white text-xs rounded p-2 outline-none">
+                    <option value="all">Semanas</option>
+                </select>
+                <button onclick="fetchExcel()" class="bg-white text-red-900 font-black text-xs py-2 px-4 rounded hover:bg-red-100 transition-all">
+                    ACTUALIZAR
                 </button>
             </div>
         </div>
     </header>
 
-    <main class="max-w-7xl mx-auto px-4 pb-20">
-        
-        <div class="kpi-card border-t-4 border-t-blue-500">
-            <div class="bg-blue-50 p-4 border-b border-blue-100 flex justify-between items-center">
-                <h3 class="text-lg font-extrabold text-blue-900">1. TABLERO DE MUELLE</h3>
-                <span id="label-muelle" class="bg-blue-200 text-blue-800 text-xs font-bold px-3 py-1 rounded-full uppercase">0 Registros</span>
+    <main class="max-w-[1600px] mx-auto p-4">
+        <div class="dashboard-grid">
+            
+            <div class="kpi-card">
+                <div class="psp-header bg-muelle">
+                    <span>1. MUELLE</span>
+                    <span id="label-muelle" class="text-[10px] bg-black/20 px-2 py-1 rounded">0</span>
+                </div>
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Nombre</th>
+                                <th>Rango</th>
+                                <th class="text-center">Rut</th>
+                                <th class="text-center">Paq</th>
+                                <th class="text-center">Err</th>
+                                <th class="text-center">Ef%</th>
+                                <th class="text-center">PPH</th>
+                                <th class="text-center">Días</th>
+                            </tr>
+                        </thead>
+                        <tbody id="body-muelle"></tbody>
+                    </table>
+                </div>
             </div>
-            <div class="table-container">
-                <table>
-                    <thead>
-                        <tr id="head-muelle"></tr>
-                    </thead>
-                    <tbody id="body-muelle"></tbody>
-                </table>
-            </div>
-        </div>
 
-        <div class="kpi-card border-t-4 border-t-emerald-500">
-            <div class="bg-emerald-50 p-4 border-b border-emerald-100 flex justify-between items-center">
-                <h3 class="text-lg font-extrabold text-emerald-900">2. TABLERO DE INYECCIÓN</h3>
-                <span id="label-inyeccion" class="bg-emerald-200 text-emerald-800 text-xs font-bold px-3 py-1 rounded-full uppercase">0 Registros</span>
+            <div class="kpi-card">
+                <div class="psp-header bg-inyeccion">
+                    <span>2. INYECCIÓN</span>
+                    <span id="label-inyeccion" class="text-[10px] bg-black/20 px-2 py-1 rounded">0</span>
+                </div>
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Nombre</th>
+                                <th>Rango</th>
+                                <th class="text-center">Paq</th>
+                                <th class="text-center">Dañ</th>
+                                <th class="text-center">Ef%</th>
+                                <th class="text-center">PPH</th>
+                                <th class="text-center">Días</th>
+                            </tr>
+                        </thead>
+                        <tbody id="body-inyeccion"></tbody>
+                    </table>
+                </div>
             </div>
-            <div class="table-container">
-                <table>
-                    <thead>
-                        <tr id="head-inyeccion"></tr>
-                    </thead>
-                    <tbody id="body-inyeccion"></tbody>
-                </table>
-            </div>
-        </div>
 
-        <div class="kpi-card border-t-4 border-t-amber-500">
-            <div class="bg-amber-50 p-4 border-b border-amber-100 flex justify-between items-center">
-                <h3 class="text-lg font-extrabold text-amber-900">3. TABLERO DE ETIQUETADO</h3>
-                <span id="label-etiquetado" class="bg-amber-200 text-amber-800 text-xs font-bold px-3 py-1 rounded-full uppercase">0 Registros</span>
+            <div class="kpi-card">
+                <div class="psp-header bg-etiquetado">
+                    <span>3. ETIQUETADO</span>
+                    <span id="label-etiquetado" class="text-[10px] bg-black/20 px-2 py-1 rounded">0</span>
+                </div>
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Nombre</th>
+                                <th>Rango</th>
+                                <th class="text-center">Paq</th>
+                                <th class="text-center">Err</th>
+                                <th class="text-center">Ef%</th>
+                                <th class="text-center">PPH</th>
+                                <th class="text-center">Días</th>
+                            </tr>
+                        </thead>
+                        <tbody id="body-etiquetado"></tbody>
+                    </table>
+                </div>
             </div>
-            <div class="table-container">
-                <table>
-                    <thead>
-                        <tr id="head-etiquetado"></tr>
-                    </thead>
-                    <tbody id="body-etiquetado"></tbody>
-                </table>
-            </div>
-        </div>
 
+        </div>
     </main>
 
     <script>
         const XLSX_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRrIh0lDXr8oz48UNU56X6iUV_f04YpsgwF8pULjOIrQ9tUREu0ehPoT2OHoDOVw1BCAS1VOndiU1ri/pub?output=xlsx';
-        
         let rawRows = [];
-        let dataStore = { muelle: [], inyeccion: [], etiquetado: [] };
 
         async function fetchExcel() {
             document.getElementById('loader').style.display = 'flex';
             try {
                 const response = await fetch(XLSX_URL + '&cache=' + new Date().getTime());
                 const arrayBuffer = await response.arrayBuffer();
-                const data = new Uint8Array(arrayBuffer);
-                const workbook = XLSX.read(data, { type: 'array' });
+                const workbook = XLSX.read(new Uint8Array(arrayBuffer), { type: 'array' });
+                const sheetName = workbook.SheetNames.find(n => n.includes('Picking')) || workbook.SheetNames[0];
+                rawRows = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName], { defval: "" });
                 
-                const sheetName = workbook.SheetNames.find(n => n.toLowerCase().includes('picking')) || workbook.SheetNames[0];
-                const worksheet = workbook.Sheets[sheetName];
-                rawRows = XLSX.utils.sheet_to_json(worksheet, { defval: "" });
-
-                populateWeeks(rawRows);
-                processData(rawRows);
+                populateWeeks();
+                processData();
             } catch (error) {
-                console.error("Error cargando Excel:", error);
-                alert("No se pudieron cargar los datos.");
+                alert("Error de conexión");
             } finally {
                 document.getElementById('loader').style.display = 'none';
             }
         }
 
-        function populateWeeks(rows) {
-            const weekCol = findKey(rows[0], 'Semana');
-            if (!weekCol) return;
-            
-            const weeks = [...new Set(rows.map(r => r[weekCol]).filter(w => w !== ""))].sort();
+        function populateWeeks() {
+            const col = findKey(rawRows[0], 'Semana');
+            const weeks = [...new Set(rawRows.map(r => r[col]).filter(w => w !== ""))].sort();
             const select = document.getElementById('filter-semana');
-            select.innerHTML = '<option value="all">Todas las Semanas</option>';
-            weeks.forEach(w => {
-                const opt = document.createElement('option');
-                opt.value = w;
-                opt.textContent = `Semana ${w}`;
-                select.appendChild(opt);
-            });
-        }
-
-        function applyFilters() {
-            processData(rawRows);
+            select.innerHTML = '<option value="all">Semanas</option>';
+            weeks.forEach(w => select.innerHTML += `<option value="${w}">Semana ${w}</option>`);
         }
 
         function findKey(row, name) {
-            if (!row) return null;
             const normalized = name.toLowerCase().replace(/\s/g, '');
             return Object.keys(row).find(k => k.toLowerCase().replace(/\s/g, '') === normalized);
         }
 
-        function processData(rows) {
+        function applyFilters() { processData(); }
+
+        function processData() {
             const selectedWeek = document.getElementById('filter-semana').value;
             const groups = { muelle: {}, inyeccion: {}, etiquetado: {} };
 
-            rows.forEach(row => {
+            rawRows.forEach(row => {
                 const colSemana = findKey(row, 'Semana');
                 if (selectedWeek !== "all" && String(row[colSemana]) !== selectedWeek) return;
 
-                const colProceso = findKey(row, 'Proceso de Trabajo');
-                const colNombre = findKey(row, 'Colaborador');
-                const colPaquetes = findKey(row, 'Paquetes Procesados x Colaborador');
-                const colFecha = findKey(row, 'Fecha');
-                const colRango = findKey(row, 'Rango de Trabajo');
-
-                if (!colProceso || !colNombre) return;
-
-                const proceso = String(row[colProceso]).toLowerCase();
-                const nombre = String(row[colNombre]);
+                const proceso = String(row[findKey(row, 'Proceso de Trabajo')]).toLowerCase();
+                const nombre = String(row[findKey(row, 'Colaborador')]);
+                if (!nombre || nombre === "") return;
 
                 let type = "";
-                let errVal = 0;
+                if (proceso.includes('muelle')) type = 'muelle';
+                else if (proceso.includes('inyeccion') || proceso.includes('inyección')) type = 'inyeccion';
+                else if (proceso.includes('etiquetado')) type = 'etiquetado';
 
-                if (proceso.includes('muelle')) {
-                    type = 'muelle';
-                    errVal = parseFloat(row[findKey(row, 'Errores Muelle')]) || 0;
-                } else if (proceso.includes('inyeccion') || proceso.includes('inyección')) {
-                    type = 'inyeccion';
-                    errVal = parseFloat(row[findKey(row, 'Paquetes Dañados/ SC')]) || 0;
-                } else if (proceso.includes('etiquetado')) {
-                    type = 'etiquetado';
-                    errVal = parseFloat(row[findKey(row, 'Errores Etiquetado')]) || 0;
-                }
-
-                if (type && nombre !== "") {
+                if (type) {
                     if (!groups[type][nombre]) {
                         groups[type][nombre] = {
-                            nombre: nombre,
-                            rangoRaw: new Set(),
-                            rutas: 0,
-                            paquetes: 0,
-                            errores: 0,
-                            dias: new Set(),
-                            horasTrabajadas: 0 // Usado como divisor para PPH
+                            nombre, ranges: new Set(), rutas: 0, 
+                            paquetes: 0, errores: 0, dias: new Set(), totalFilas: 0
                         };
                     }
                     const s = groups[type][nombre];
                     
-                    // Lógica Rango: Acumular letras sin repetir (especialmente para inyección)
-                    if (row[colRango]) {
-                        String(row[colRango]).split(',').forEach(letra => {
-                            const clean = letra.trim();
-                            if(clean) s.rangoRaw.add(clean);
-                        });
-                    }
+                    // Lógica de rangos (acumular letras únicas)
+                    const rVal = String(row[findKey(row, 'Rango de Trabajo')]);
+                    rVal.split(',').forEach(l => { if(l.trim()) s.ranges.add(l.trim()); });
 
-                    if (type === 'muelle') s.rutas++;
-                    s.paquetes += parseFloat(row[colPaquetes]) || 0;
-                    s.errores += errVal;
-                    if (row[colFecha]) s.dias.add(row[colFecha]);
-                    s.horasTrabajadas++; // Se asume cada registro como una unidad de tiempo/bloque para el cálculo de PPH
+                    // Corregir conteo de Rutas (Solo Muelle): Contar 1 por fila procesada del colaborador
+                    if (type === 'muelle') s.rutas += 1;
+
+                    s.paquetes += parseFloat(row[findKey(row, 'Paquetes Procesados x Colaborador')]) || 0;
+                    
+                    if (type === 'inyeccion') s.errores += parseFloat(row[findKey(row, 'Paquetes Dañados/ SC')]) || 0;
+                    else if (type === 'muelle') s.errores += parseFloat(row[findKey(row, 'Errores Muelle')]) || 0;
+                    else s.errores += parseFloat(row[findKey(row, 'Errores Etiquetado')]) || 0;
+
+                    if (row[findKey(row, 'Fecha')]) s.dias.add(row[findKey(row, 'Fecha')]);
+                    s.totalFilas++;
                 }
             });
 
-            Object.keys(groups).forEach(key => {
-                dataStore[key] = Object.values(groups[key]).map(s => {
-                    const ef = s.paquetes > 0 ? ((s.paquetes - s.errores) / s.paquetes) * 100 : 0;
-                    const rangoFinal = Array.from(s.rangoRaw).join(', ');
-                    
-                    return {
-                        ...s,
-                        rango: rangoFinal,
-                        eficiencia: ef,
-                        pph: s.paquetes / (s.horasTrabajadas || 1),
-                        numDias: s.dias.size
-                    };
-                });
-
-                dataStore[key].sort((a, b) => b.eficiencia - a.eficiencia || b.paquetes - a.paquetes);
-                renderTable(key);
-            });
+            renderTables(groups);
         }
 
-        function renderTable(type) {
-            const body = document.getElementById(`body-${type}`);
-            const head = document.getElementById(`head-${type}`);
-            const label = document.getElementById(`label-${type}`);
-            
-            const errName = type === 'inyeccion' ? 'Dañados/SC' : 'Errores';
-            label.innerText = `${dataStore[type].length} Colaboradores`;
+        function renderTables(groups) {
+            ['muelle', 'inyeccion', 'etiquetado'].forEach(type => {
+                const list = Object.values(groups[type]).map(s => {
+                    const ef = s.paquetes > 0 ? ((s.paquetes - s.errores) / s.paquetes) * 100 : 0;
+                    return {
+                        ...s,
+                        rango: Array.from(s.ranges).join(','),
+                        eficiencia: ef,
+                        pph: Math.round(s.paquetes / (s.totalFilas || 1))
+                    };
+                }).sort((a, b) => b.eficiencia - a.eficiencia);
 
-            // Condicional para mostrar columna Rutas solo en Muelle
-            const rutasHeader = type === 'muelle' ? '<th class="text-center">Rutas</th>' : '';
-
-            head.innerHTML = `
-                <th>Colaborador</th>
-                <th>Rango</th>
-                ${rutasHeader}
-                <th class="text-center">Paquetes</th>
-                <th class="text-center">${errName}</th>
-                <th class="text-center">Eficiencia ▼</th>
-                <th class="text-center">PPH</th>
-                <th class="text-center">Días</th>
-            `;
-
-            body.innerHTML = dataStore[type].map(s => `
-                <tr>
-                    <td class="font-bold text-slate-900">${s.nombre}</td>
-                    <td class="text-xs">${s.rango}</td>
-                    ${type === 'muelle' ? `<td class="text-center font-semibold">${s.rutas}</td>` : ''}
-                    <td class="text-center font-mono text-blue-700 font-bold">${s.paquetes.toLocaleString()}</td>
-                    <td class="text-center text-red-600 font-bold">${s.errores}</td>
-                    <td class="text-center">
-                        <span class="status-badge ${s.eficiencia >= 95 ? 'bg-green-100 text-green-700' : 'bg-orange-100 text-orange-700'}">
-                            ${s.eficiencia.toFixed(2)}%
-                        </span>
-                    </td>
-                    <td class="text-center font-mono">${s.pph.toFixed(1)}</td>
-                    <td class="text-center font-bold text-slate-500">${s.numDias}</td>
-                </tr>
-            `).join('');
+                document.getElementById(`label-${type}`).innerText = list.length;
+                const body = document.getElementById(`body-${type}`);
+                body.innerHTML = list.map(s => `
+                    <tr>
+                        <td class="font-bold text-white">${s.nombre}</td>
+                        <td class="text-[10px] text-gray-500">${s.rango}</td>
+                        ${type === 'muelle' ? `<td class="text-center font-bold text-blue-400">${s.rutas}</td>` : ''}
+                        <td class="text-center font-bold text-emerald-400">${s.paquetes}</td>
+                        <td class="text-center text-red-400">${s.errores}</td>
+                        <td class="text-center">
+                            <span class="status-badge ${s.eficiencia >= 95 ? 'text-green-400' : 'text-orange-400'}">
+                                ${s.eficiencia.toFixed(1)}%
+                            </span>
+                        </td>
+                        <td class="text-center text-white font-bold">${s.pph}</td>
+                        <td class="text-center opacity-60">${s.dias.size}</td>
+                    </tr>
+                `).join('');
+            });
         }
 
         window.onload = fetchExcel;
