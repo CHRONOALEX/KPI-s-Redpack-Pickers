@@ -14,7 +14,6 @@
             color: #e2e8f0;
         }
         
-        /* Layout de 3 columnas */
         .dashboard-grid {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
@@ -24,7 +23,7 @@
 
         .table-container { 
             overflow-x: auto; 
-            max-height: 600px; 
+            max-height: 650px; 
             background: #1e1e1e;
         }
 
@@ -32,8 +31,9 @@
         thead th { 
             position: sticky; top: 0; background: #2d2d2d; color: #94a3b8; 
             padding: 10px; text-align: left; font-size: 0.65rem; text-transform: uppercase;
-            z-index: 10; border-bottom: 2px solid #404040;
+            z-index: 10; border-bottom: 2px solid #404040; cursor: pointer;
         }
+        thead th:hover { color: white; background: #3d3d3d; }
         tbody tr { border-bottom: 1px solid #2d2d2d; }
         tbody tr:hover { background-color: #262626; }
         tbody td { padding: 10px; font-size: 0.75rem; color: #cbd5e1; }
@@ -43,7 +43,6 @@
             border: 1px solid #333; height: 100%;
         }
 
-        /* Animación Estilo PSP */
         @keyframes psp-shimmer {
             0% { background-position: -200% 0; }
             100% { background-position: 200% 0; }
@@ -68,7 +67,7 @@
 
         .status-badge { padding: 2px 6px; border-radius: 4px; font-weight: bold; font-size: 0.7rem; }
         
-        header { background-color: #630d0d; } /* Rojo Guindo */
+        header { background-color: #630d0d; }
 
         .loading-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
@@ -81,14 +80,14 @@
 
     <div id="loader" class="loading-overlay">
         <div class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-white mb-4"></div>
-        <h2 class="text-lg font-bold">Sincronizando...</h2>
+        <h2 class="text-lg font-bold">Procesando Datos...</h2>
     </div>
 
     <header class="p-4 shadow-xl border-b border-red-900">
         <div class="max-w-[1600px] mx-auto flex justify-between items-center">
             <div>
                 <h1 class="text-xl font-extrabold tracking-tighter text-white">PICKING KPI DASHBOARD</h1>
-                <p class="text-red-200 text-xs opacity-80">Control de Operaciones Real-Time</p>
+                <p class="text-red-200 text-xs opacity-80">Última Milla Redpack - Picking</p>
             </div>
             <div class="flex items-center gap-4">
                 <select id="filter-semana" onchange="applyFilters()" class="bg-black/30 border border-red-400 text-white text-xs rounded p-2 outline-none">
@@ -104,23 +103,24 @@
     <main class="max-w-[1600px] mx-auto p-4">
         <div class="dashboard-grid">
             
+            <!-- TABLERO MUELLE -->
             <div class="kpi-card">
                 <div class="psp-header bg-muelle">
                     <span>1. MUELLE</span>
                     <span id="label-muelle" class="text-[10px] bg-black/20 px-2 py-1 rounded">0</span>
                 </div>
                 <div class="table-container">
-                    <table>
+                    <table id="table-muelle">
                         <thead>
                             <tr>
-                                <th>Nombre</th>
-                                <th>Rango</th>
-                                <th class="text-center">Rut</th>
-                                <th class="text-center">Paq</th>
-                                <th class="text-center">Err</th>
-                                <th class="text-center">Ef%</th>
-                                <th class="text-center">PPH</th>
-                                <th class="text-center">Días</th>
+                                <th onclick="sortTable('muelle', 0)">Nombre</th>
+                                <th onclick="sortTable('muelle', 1)">Rango</th>
+                                <th onclick="sortTable('muelle', 2)" class="text-center">Rut</th>
+                                <th onclick="sortTable('muelle', 3)" class="text-center">Paq</th>
+                                <th onclick="sortTable('muelle', 4)" class="text-center">Err</th>
+                                <th onclick="sortTable('muelle', 5)" class="text-center">Ef%</th>
+                                <th onclick="sortTable('muelle', 6)" class="text-center">PPH</th>
+                                <th onclick="sortTable('muelle', 7)" class="text-center">Días</th>
                             </tr>
                         </thead>
                         <tbody id="body-muelle"></tbody>
@@ -128,22 +128,23 @@
                 </div>
             </div>
 
+            <!-- TABLERO INYECCIÓN -->
             <div class="kpi-card">
                 <div class="psp-header bg-inyeccion">
                     <span>2. INYECCIÓN</span>
                     <span id="label-inyeccion" class="text-[10px] bg-black/20 px-2 py-1 rounded">0</span>
                 </div>
                 <div class="table-container">
-                    <table>
+                    <table id="table-inyeccion">
                         <thead>
                             <tr>
-                                <th>Nombre</th>
-                                <th>Rango</th>
-                                <th class="text-center">Paq</th>
-                                <th class="text-center">Dañ</th>
-                                <th class="text-center">Ef%</th>
-                                <th class="text-center">PPH</th>
-                                <th class="text-center">Días</th>
+                                <th onclick="sortTable('inyeccion', 0)">Nombre</th>
+                                <th onclick="sortTable('inyeccion', 1)">Rango</th>
+                                <th onclick="sortTable('inyeccion', 2)" class="text-center">Paq</th>
+                                <th onclick="sortTable('inyeccion', 3)" class="text-center">Dañ</th>
+                                <th onclick="sortTable('inyeccion', 4)" class="text-center">Ef%</th>
+                                <th onclick="sortTable('inyeccion', 5)" class="text-center">PPH</th>
+                                <th onclick="sortTable('inyeccion', 6)" class="text-center">Días</th>
                             </tr>
                         </thead>
                         <tbody id="body-inyeccion"></tbody>
@@ -151,22 +152,23 @@
                 </div>
             </div>
 
+            <!-- TABLERO ETIQUETADO -->
             <div class="kpi-card">
                 <div class="psp-header bg-etiquetado">
                     <span>3. ETIQUETADO</span>
                     <span id="label-etiquetado" class="text-[10px] bg-black/20 px-2 py-1 rounded">0</span>
                 </div>
                 <div class="table-container">
-                    <table>
+                    <table id="table-etiquetado">
                         <thead>
                             <tr>
-                                <th>Nombre</th>
-                                <th>Rango</th>
-                                <th class="text-center">Paq</th>
-                                <th class="text-center">Err</th>
-                                <th class="text-center">Ef%</th>
-                                <th class="text-center">PPH</th>
-                                <th class="text-center">Días</th>
+                                <th onclick="sortTable('etiquetado', 0)">Nombre</th>
+                                <th onclick="sortTable('etiquetado', 1)">Rango</th>
+                                <th onclick="sortTable('etiquetado', 2)" class="text-center">Paq</th>
+                                <th onclick="sortTable('etiquetado', 3)" class="text-center">Err</th>
+                                <th onclick="sortTable('etiquetado', 4)" class="text-center">Ef%</th>
+                                <th onclick="sortTable('etiquetado', 5)" class="text-center">PPH</th>
+                                <th onclick="sortTable('etiquetado', 6)" class="text-center">Días</th>
                             </tr>
                         </thead>
                         <tbody id="body-etiquetado"></tbody>
@@ -180,6 +182,7 @@
     <script>
         const XLSX_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRrIh0lDXr8oz48UNU56X6iUV_f04YpsgwF8pULjOIrQ9tUREu0ehPoT2OHoDOVw1BCAS1VOndiU1ri/pub?output=xlsx';
         let rawRows = [];
+        let tablesData = { muelle: [], inyeccion: [], etiquetado: [] };
 
         async function fetchExcel() {
             document.getElementById('loader').style.display = 'flex';
@@ -193,23 +196,25 @@
                 populateWeeks();
                 processData();
             } catch (error) {
-                alert("Error de conexión");
+                console.error(error);
+                alert("Error cargando el archivo");
             } finally {
                 document.getElementById('loader').style.display = 'none';
             }
         }
 
+        function findKey(row, name) {
+            if (!row) return "";
+            const normalized = name.toLowerCase().replace(/\s/g, '');
+            return Object.keys(row).find(k => k.toLowerCase().replace(/\s/g, '') === normalized) || "";
+        }
+
         function populateWeeks() {
             const col = findKey(rawRows[0], 'Semana');
-            const weeks = [...new Set(rawRows.map(r => r[col]).filter(w => w !== ""))].sort();
+            const weeks = [...new Set(rawRows.map(r => r[col]).filter(w => w !== ""))].sort((a,b) => a-b);
             const select = document.getElementById('filter-semana');
             select.innerHTML = '<option value="all">Semanas</option>';
             weeks.forEach(w => select.innerHTML += `<option value="${w}">Semana ${w}</option>`);
-        }
-
-        function findKey(row, name) {
-            const normalized = name.toLowerCase().replace(/\s/g, '');
-            return Object.keys(row).find(k => k.toLowerCase().replace(/\s/g, '') === normalized);
         }
 
         function applyFilters() { processData(); }
@@ -240,12 +245,13 @@
                     }
                     const s = groups[type][nombre];
                     
-                    // Lógica de rangos (acumular letras únicas)
                     const rVal = String(row[findKey(row, 'Rango de Trabajo')]);
                     rVal.split(',').forEach(l => { if(l.trim()) s.ranges.add(l.trim()); });
 
-                    // Corregir conteo de Rutas (Solo Muelle): Contar 1 por fila procesada del colaborador
-                    if (type === 'muelle') s.rutas += 1;
+                    // Corregir Rutas de Muelle: Sumar columna "Rutas x Colaborador"
+                    if (type === 'muelle') {
+                        s.rutas += parseFloat(row[findKey(row, 'Rutas x Colaborador')]) || 0;
+                    }
 
                     s.paquetes += parseFloat(row[findKey(row, 'Paquetes Procesados x Colaborador')]) || 0;
                     
@@ -258,40 +264,71 @@
                 }
             });
 
-            renderTables(groups);
-        }
+            Object.keys(groups).forEach(type => {
+                tablesData[type] = Object.values(groups[type]).map(s => {
+                    // Si hay errores, no redondear a 100% (Usar 99.9 si es necesario pero no 100)
+                    let ef = s.paquetes > 0 ? ((s.paquetes - s.errores) / s.paquetes) * 100 : 0;
+                    if (s.errores > 0 && ef > 99.9) ef = 99.9; 
 
-        function renderTables(groups) {
-            ['muelle', 'inyeccion', 'etiquetado'].forEach(type => {
-                const list = Object.values(groups[type]).map(s => {
-                    const ef = s.paquetes > 0 ? ((s.paquetes - s.errores) / s.paquetes) * 100 : 0;
                     return {
-                        ...s,
+                        nombre: s.nombre,
                         rango: Array.from(s.ranges).join(','),
+                        rutas: s.rutas,
+                        paquetes: s.paquetes,
+                        errores: s.errores,
                         eficiencia: ef,
-                        pph: Math.round(s.paquetes / (s.totalFilas || 1))
+                        pph: Math.round(s.paquetes / (s.totalFilas || 1)),
+                        numDias: s.dias.size
                     };
                 }).sort((a, b) => b.eficiencia - a.eficiencia);
-
-                document.getElementById(`label-${type}`).innerText = list.length;
-                const body = document.getElementById(`body-${type}`);
-                body.innerHTML = list.map(s => `
-                    <tr>
-                        <td class="font-bold text-white">${s.nombre}</td>
-                        <td class="text-[10px] text-gray-500">${s.rango}</td>
-                        ${type === 'muelle' ? `<td class="text-center font-bold text-blue-400">${s.rutas}</td>` : ''}
-                        <td class="text-center font-bold text-emerald-400">${s.paquetes}</td>
-                        <td class="text-center text-red-400">${s.errores}</td>
-                        <td class="text-center">
-                            <span class="status-badge ${s.eficiencia >= 95 ? 'text-green-400' : 'text-orange-400'}">
-                                ${s.eficiencia.toFixed(1)}%
-                            </span>
-                        </td>
-                        <td class="text-center text-white font-bold">${s.pph}</td>
-                        <td class="text-center opacity-60">${s.dias.size}</td>
-                    </tr>
-                `).join('');
+                renderTable(type);
             });
+        }
+
+        function getEfColor(ef) {
+            if (ef >= 100) return 'text-green-400';
+            if (ef >= 98) return 'text-yellow-400';
+            return 'text-red-500';
+        }
+
+        function renderTable(type) {
+            document.getElementById(`label-${type}`).innerText = tablesData[type].length;
+            const body = document.getElementById(`body-${type}`);
+            body.innerHTML = tablesData[type].map(s => `
+                <tr>
+                    <td class="font-bold text-white">${s.nombre}</td>
+                    <td class="text-[10px] text-gray-500">${s.rango}</td>
+                    ${type === 'muelle' ? `<td class="text-center font-bold text-blue-400">${s.rutas}</td>` : ''}
+                    <td class="text-center font-bold text-emerald-400">${s.paquetes.toLocaleString()}</td>
+                    <td class="text-center text-red-400">${s.errores}</td>
+                    <td class="text-center">
+                        <span class="status-badge ${getEfColor(s.eficiencia)}">
+                            ${s.eficiencia.toFixed(1)}%
+                        </span>
+                    </td>
+                    <td class="text-center text-white font-bold">${s.pph}</td>
+                    <td class="text-center opacity-60">${s.numDias}</td>
+                </tr>
+            `).join('');
+        }
+
+        function sortTable(type, colIndex) {
+            const keys = type === 'muelle' 
+                ? ['nombre', 'rango', 'rutas', 'paquetes', 'errores', 'eficiencia', 'pph', 'numDias']
+                : ['nombre', 'rango', 'paquetes', 'errores', 'eficiencia', 'pph', 'numDias'];
+            
+            const key = keys[colIndex];
+            const isAsc = this[type + '_sort'] === key;
+            
+            tablesData[type].sort((a, b) => {
+                let valA = a[key];
+                let valB = b[key];
+                if (typeof valA === 'string') return isAsc ? valB.localeCompare(valA) : valA.localeCompare(valB);
+                return isAsc ? valA - valB : valB - valA;
+            });
+
+            this[type + '_sort'] = isAsc ? null : key;
+            renderTable(type);
         }
 
         window.onload = fetchExcel;
