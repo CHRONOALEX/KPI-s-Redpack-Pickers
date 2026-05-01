@@ -1,0 +1,173 @@
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KPI Dashboard - Picking</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
+    <style>
+        .tab-active { border-bottom: 4px solid #2563eb; color: #2563eb; font-weight: bold; }
+        .card { background: white; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); padding: 1rem; }
+        table { width: 100%; border-collapse: collapse; margin-top: 1rem; font-size: 0.85rem; }
+        th { background: #f3f4f6; padding: 0.75rem; text-align: left; border-bottom: 2px solid #e5e7eb; }
+        td { padding: 0.75rem; border-bottom: 1px solid #f3f4f6; }
+        tr:hover { background-color: #f9fafb; }
+        .loading { display: none; text-align: center; padding: 2rem; }
+    </style>
+</head>
+<body class="bg-gray-100 min-h-screen">
+
+    <nav class="bg-white shadow-md p-4">
+        <div class="max-w-7xl mx-auto flex justify-between items-center">
+            <h1 class="text-xl font-bold text-gray-800">Logística KPI - Picking</h1>
+            <button onclick="fetchData()" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition">Actualizar Datos</button>
+        </div>
+    </nav>
+
+    <div class="max-w-7xl mx-auto mt-6 px-4">
+        <!-- Tabs -->
+        <div class="flex space-x-8 border-bottom border-gray-200 bg-white px-6 rounded-t-lg shadow-sm">
+            <button onclick="switchTab('muelle')" id="btn-muelle" class="py-4 tab-active">Muelle</button>
+            <button onclick="switchTab('inyeccion')" id="btn-inyeccion" class="py-4">Inyección</button>
+            <button onclick="switchTab('etiquetado')" id="btn-etiquetado" class="py-4">Etiquetado</button>
+        </div>
+
+        <!-- Contenido -->
+        <div class="bg-white p-6 rounded-b-lg shadow-sm mb-10">
+            <div id="loading" class="loading">Cargando datos desde Google Sheets...</div>
+            
+            <div id="tab-content">
+                <div class="overflow-x-auto">
+                    <table id="kpi-table">
+                        <thead>
+                            <tr id="table-header"></tr>
+                        </thead>
+                        <tbody id="table-body"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const SHEETS_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRrIh0lDXr8oz48UNU56X6iUV_f04YpsgwF8pULjOIrQ9tUREu0ehPoT2OHoDOVw1BCAS1VOndiU1ri/pub?gid=2040529815&single=true&output=csv';
+        
+        let rawData = [];
+        let currentTab = 'muelle';
+
+        async function fetchData() {
+            document.getElementById('loading').style.display = 'block';
+            document.getElementById('kpi-table').style.display = 'none';
+            
+            try {
+                const response = await fetch(SHEETS_URL);
+                const csvText = await response.text();
+                
+                Papa.parse(csvText, {
+                    header: true,
+                    dynamicTyping: true,
+                    skipEmptyLines: true,
+                    complete: function(results) {
+                        rawData = results.data;
+                        renderDashboard();
+                        document.getElementById('loading').style.display = 'none';
+                        document.getElementById('kpi-table').style.display = 'table';
+                    }
+                });
+            } catch (error) {
+                console.error('Error fetching data:', error);
+                alert('No se pudo cargar la información. Verifica la publicación del documento.');
+            }
+        }
+
+        function switchTab(tab) {
+            currentTab = tab;
+            document.querySelectorAll('.flex button').forEach(btn => btn.classList.remove('tab-active'));
+            document.getElementById('btn-' + tab).classList.add('tab-active');
+            renderDashboard();
+        }
+
+        function renderDashboard() {
+            const tableHeader = document.getElementById('table-header');
+            const tableBody = document.getElementById('table-body');
+            
+            // Definir columnas según el proceso
+            let headers = ['Colaborador', 'Rango de Trabajo', 'Rutas', 'Paquetes', 'Eficiencia', 'Paquetes/Hora', 'Días Laborados'];
+            let processFilter = "";
+            let errorColumn = "";
+
+            if (currentTab === 'muelle') {
+                processFilter = "Muelle";
+                errorColumn = "Errores Muelle";
+                headers.splice(4, 0, "Errores");
+            } else if (currentTab === 'etiquetado') {
+                processFilter = "Etiquetado";
+                errorColumn = "Errores Etiquetado";
+                headers.splice(4, 0, "Errores");
+            } else {
+                processFilter = "Inyección";
+                errorColumn = "Paquetes Dañados/ SC";
+                headers.splice(4, 0, "Dañados/SC");
+            }
+
+            tableHeader.innerHTML = headers.map(h => `<th>${h}</th>`).join('');
+
+            // Procesar Datos (Agrupación por Colaborador)
+            const stats = {};
+            
+            rawData.forEach(row => {
+                // Filtro por proceso (asumiendo columna 'Proceso de Trabajo')
+                if (row['Proceso de Trabajo'] !== processFilter) return;
+
+                const name = row['Colaborador'];
+                const fecha = row['Fecha'] || row['FECHA'];
+                
+                if (!stats[name]) {
+                    stats[name] = {
+                        name: name,
+                        rango: row['Rango de Trabajo'],
+                        rutas: 0,
+                        paquetes: 0,
+                        errores: 0,
+                        horas: 0,
+                        dias: new Set(),
+                        totalRegistros: 0
+                    };
+                }
+
+                stats[name].rutas += 1; // Cada fila es una ruta/registro
+                stats[name].paquetes += parseFloat(row['Paquetes Procesados x Colaborador']) || 0;
+                stats[name].errores += parseFloat(row[errorColumn]) || 0;
+                
+                // Cálculo simple de horas (esto depende de cómo venga el rango, aquí sumamos registros como proxy o 1 hr por registro si no hay horas exactas)
+                stats[name].horas += 1; 
+                
+                if (fecha) stats[name].dias.add(fecha);
+            });
+
+            tableBody.innerHTML = Object.values(stats).map(s => {
+                const eficiencia = s.paquetes > 0 ? (((s.paquetes - s.errores) / s.paquetes) * 100).toFixed(2) + '%' : '0%';
+                const pph = s.horas > 0 ? (s.paquetes / s.horas).toFixed(2) : 0;
+
+                return `
+                    <tr>
+                        <td class="font-medium">${s.name}</td>
+                        <td>${s.rango || 'N/A'}</td>
+                        <td>${s.rutas}</td>
+                        <td>${s.paquetes}</td>
+                        <td class="text-red-600">${s.errores}</td>
+                        <td class="font-bold ${parseFloat(eficiencia) > 95 ? 'text-green-600' : 'text-orange-600'}">${eficiencia}</td>
+                        <td>${pph}</td>
+                        <td>${s.dias.size}</td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        // Carga inicial
+        fetchData();
+    </script>
+</body>
+</html>
