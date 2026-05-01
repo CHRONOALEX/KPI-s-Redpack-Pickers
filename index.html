@@ -36,14 +36,22 @@
     </div>
 
     <header class="bg-white border-b border-slate-200 p-6 mb-8">
-        <div class="max-w-7xl mx-auto flex justify-between items-center">
+        <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
             <div>
                 <h1 class="text-2xl font-extrabold text-slate-900 tracking-tight">OPERACIONES: PICKING KPI</h1>
                 <p class="text-slate-500 text-sm">Visualización consolidada de Muelle, Inyección y Etiquetado</p>
             </div>
-            <button onclick="fetchExcel()" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded-lg transition-all shadow-md">
-                Sincronizar Excel
-            </button>
+            <div class="flex items-center gap-4">
+                <div class="flex flex-col">
+                    <label for="filter-semana" class="text-xs font-bold text-slate-500 uppercase mb-1">Filtrar por Semana</label>
+                    <select id="filter-semana" onchange="applyFilters()" class="bg-slate-100 border border-slate-300 text-slate-700 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2">
+                        <option value="all">Todas las Semanas</option>
+                    </select>
+                </div>
+                <button onclick="fetchExcel()" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded-lg transition-all shadow-md mt-4 md:mt-0">
+                    Sincronizar Excel
+                </button>
+            </div>
         </div>
     </header>
 
@@ -99,6 +107,7 @@
     <script>
         const XLSX_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRrIh0lDXr8oz48UNU56X6iUV_f04YpsgwF8pULjOIrQ9tUREu0ehPoT2OHoDOVw1BCAS1VOndiU1ri/pub?output=xlsx';
         
+        let rawRows = [];
         let dataStore = { muelle: [], inyeccion: [], etiquetado: [] };
 
         async function fetchExcel() {
@@ -109,30 +118,53 @@
                 const data = new Uint8Array(arrayBuffer);
                 const workbook = XLSX.read(data, { type: 'array' });
                 
-                // Buscar pestaña que diga "Picking" o usar la primera
                 const sheetName = workbook.SheetNames.find(n => n.toLowerCase().includes('picking')) || workbook.SheetNames[0];
                 const worksheet = workbook.Sheets[sheetName];
-                const rows = XLSX.utils.sheet_to_json(worksheet, { defval: "" });
+                rawRows = XLSX.utils.sheet_to_json(worksheet, { defval: "" });
 
-                processData(rows);
+                populateWeeks(rawRows);
+                processData(rawRows);
             } catch (error) {
                 console.error("Error cargando Excel:", error);
-                alert("No se pudieron cargar los datos. Revisa la consola (F12) o la publicación del Excel.");
+                alert("No se pudieron cargar los datos.");
             } finally {
                 document.getElementById('loader').style.display = 'none';
             }
         }
 
-        // Buscador flexible de columnas (Ignora espacios y mayúsculas)
+        function populateWeeks(rows) {
+            const weekCol = findKey(rows[0], 'Semana');
+            if (!weekCol) return;
+            
+            const weeks = [...new Set(rows.map(r => r[weekCol]).filter(w => w !== ""))].sort();
+            const select = document.getElementById('filter-semana');
+            select.innerHTML = '<option value="all">Todas las Semanas</option>';
+            weeks.forEach(w => {
+                const opt = document.createElement('option');
+                opt.value = w;
+                opt.textContent = `Semana ${w}`;
+                select.appendChild(opt);
+            });
+        }
+
+        function applyFilters() {
+            processData(rawRows);
+        }
+
         function findKey(row, name) {
+            if (!row) return null;
             const normalized = name.toLowerCase().replace(/\s/g, '');
             return Object.keys(row).find(k => k.toLowerCase().replace(/\s/g, '') === normalized);
         }
 
         function processData(rows) {
+            const selectedWeek = document.getElementById('filter-semana').value;
             const groups = { muelle: {}, inyeccion: {}, etiquetado: {} };
 
             rows.forEach(row => {
+                const colSemana = findKey(row, 'Semana');
+                if (selectedWeek !== "all" && String(row[colSemana]) !== selectedWeek) return;
+
                 const colProceso = findKey(row, 'Proceso de Trabajo');
                 const colNombre = findKey(row, 'Colaborador');
                 const colPaquetes = findKey(row, 'Paquetes Procesados x Colaborador');
@@ -162,29 +194,42 @@
                     if (!groups[type][nombre]) {
                         groups[type][nombre] = {
                             nombre: nombre,
-                            rango: row[colRango] || "N/A",
+                            rangoRaw: new Set(),
                             rutas: 0,
                             paquetes: 0,
                             errores: 0,
-                            dias: new Set()
+                            dias: new Set(),
+                            horasTrabajadas: 0 // Usado como divisor para PPH
                         };
                     }
                     const s = groups[type][nombre];
-                    s.rutas++;
+                    
+                    // Lógica Rango: Acumular letras sin repetir (especialmente para inyección)
+                    if (row[colRango]) {
+                        String(row[colRango]).split(',').forEach(letra => {
+                            const clean = letra.trim();
+                            if(clean) s.rangoRaw.add(clean);
+                        });
+                    }
+
+                    if (type === 'muelle') s.rutas++;
                     s.paquetes += parseFloat(row[colPaquetes]) || 0;
                     s.errores += errVal;
                     if (row[colFecha]) s.dias.add(row[colFecha]);
+                    s.horasTrabajadas++; // Se asume cada registro como una unidad de tiempo/bloque para el cálculo de PPH
                 }
             });
 
-            // Convertir a Arrays y ordenar por Eficiencia (Desc) y Paquetes (Desc)
             Object.keys(groups).forEach(key => {
                 dataStore[key] = Object.values(groups[key]).map(s => {
                     const ef = s.paquetes > 0 ? ((s.paquetes - s.errores) / s.paquetes) * 100 : 0;
+                    const rangoFinal = Array.from(s.rangoRaw).join(', ');
+                    
                     return {
                         ...s,
+                        rango: rangoFinal,
                         eficiencia: ef,
-                        pph: s.paquetes / (s.rutas || 1),
+                        pph: s.paquetes / (s.horasTrabajadas || 1),
                         numDias: s.dias.size
                     };
                 });
@@ -202,10 +247,13 @@
             const errName = type === 'inyeccion' ? 'Dañados/SC' : 'Errores';
             label.innerText = `${dataStore[type].length} Colaboradores`;
 
+            // Condicional para mostrar columna Rutas solo en Muelle
+            const rutasHeader = type === 'muelle' ? '<th class="text-center">Rutas</th>' : '';
+
             head.innerHTML = `
                 <th>Colaborador</th>
                 <th>Rango</th>
-                <th class="text-center">Rutas</th>
+                ${rutasHeader}
                 <th class="text-center">Paquetes</th>
                 <th class="text-center">${errName}</th>
                 <th class="text-center">Eficiencia ▼</th>
@@ -217,7 +265,7 @@
                 <tr>
                     <td class="font-bold text-slate-900">${s.nombre}</td>
                     <td class="text-xs">${s.rango}</td>
-                    <td class="text-center font-semibold">${s.rutas}</td>
+                    ${type === 'muelle' ? `<td class="text-center font-semibold">${s.rutas}</td>` : ''}
                     <td class="text-center font-mono text-blue-700 font-bold">${s.paquetes.toLocaleString()}</td>
                     <td class="text-center text-red-600 font-bold">${s.errores}</td>
                     <td class="text-center">
