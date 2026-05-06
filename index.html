@@ -10,29 +10,25 @@
     <style>
         body { font-family: 'Lexend', sans-serif; background-color: #121212; color: #e2e8f0; }
         .dashboard-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; }
-        .table-container { background: #1e1e1e; width: 100%; }
+        .table-container { background: #1e1e1e; width: 100%; max-height: 400px; overflow-y: auto; }
         table { width: 100%; border-collapse: collapse; table-layout: auto; }
         thead th { position: sticky; top: 0; background: #2d2d2d; color: #94a3b8; padding: 8px; text-align: left; font-size: 0.65rem; text-transform: uppercase; z-index: 10; border-bottom: 2px solid #404040; cursor: pointer; }
         tbody td { padding: 8px; font-size: 0.75rem; color: #cbd5e1; border-bottom: 1px solid #2d2d2d; }
-        .kpi-card { background: #1e1e1e; border-radius: 8px; border: 1px solid #333; }
+        .kpi-card { background: #1e1e1e; border-radius: 8px; border: 1px solid #333; display: flex; flex-direction: column; }
         
         @keyframes psp-shimmer { 0% { background-position: -200% 0; } 100% { background-position: 200% 0; } }
-        .psp-header { padding: 12px; font-weight: 800; text-transform: uppercase; background-size: 200% auto; animation: psp-shimmer 4s linear infinite; color: white; display: flex; justify-content: space-between; align-items: center; }
+        .psp-header { padding: 12px; font-weight: 800; text-transform: uppercase; background-size: 200% auto; animation: psp-shimmer 4s linear infinite; color: white; display: flex; justify-content: space-between; align-items: center; border-radius: 8px 8px 0 0; }
         .bg-muelle { background-image: linear-gradient(90deg, #1e3a8a 0%, #3b82f6 50%, #1e3a8a 100%); }
         .bg-etiquetado { background-image: linear-gradient(90deg, #581c87 0%, #a855f7 50%, #581c87 100%); }
         .bg-inyeccion { background-image: linear-gradient(90deg, #7c2d12 0%, #f97316 50%, #7c2d12 100%); }
         
-        /* Estilo fila perfecta */
         .perfect-row { border: 2px solid #eab308 !important; background: rgba(234, 179, 8, 0.05) !important; }
         
         header { background-color: #630d0d; }
         .loading-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 1000; }
-        .mini-bar { height: 6px; border-radius: 3px; background: #333; overflow: hidden; width: 100%; }
-        .mini-bar-fill { height: 100%; transition: width 0.5s ease-in-out; }
         
-        .chart-container { background: #1e1e1e; border-radius: 8px; border: 1px solid #333; padding: 20px; }
-        .bar-label { font-size: 10px; fill: #94a3b8; font-weight: 600; }
-        .bar-value { font-size: 11px; fill: #fff; font-weight: 800; }
+        .bar-label { fill: #94a3b8; font-weight: 600; }
+        .bar-value { fill: #fff; font-weight: 800; }
     </style>
 </head>
 <body>
@@ -70,20 +66,13 @@
         
         <section id="top-section" class="grid grid-cols-3 gap-4"></section>
 
-        <section class="chart-container">
-            <h3 class="text-xs font-bold text-gray-400 mb-4 uppercase tracking-widest flex items-center gap-2">
-                <span class="w-2 h-2 bg-yellow-500 rounded-full"></span> Análisis de Rendimiento por Categoría
-            </h3>
-            <div id="charts-wrapper" class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                </div>
-        </section>
-
         <div class="dashboard-grid">
             <div class="kpi-card">
                 <div class="psp-header bg-muelle">
                     <span>1. MUELLE</span>
                     <span id="label-muelle" class="text-[10px] bg-black/20 px-2 py-1 rounded">0</span>
                 </div>
+                <div id="chart-muelle" class="w-full h-[100px] p-2 bg-[#1a1a1a]"></div>
                 <div class="table-container">
                     <table id="table-muelle">
                         <thead><tr><th onclick="sortTable('muelle', 0)">Nombre</th><th>Rango</th><th class="text-center">Rut</th><th class="text-center">Paq</th><th class="text-center">Err</th><th class="text-center">Ef%</th><th class="text-center">PPH</th></tr></thead>
@@ -97,6 +86,7 @@
                     <span>2. INYECCIÓN</span>
                     <span id="label-inyeccion" class="text-[10px] bg-black/20 px-2 py-1 rounded">0</span>
                 </div>
+                <div id="chart-inyeccion" class="w-full h-[100px] p-2 bg-[#1a1a1a]"></div>
                 <div class="table-container">
                     <table>
                         <thead><tr><th onclick="sortTable('inyeccion', 0)">Nombre</th><th>Rango</th><th class="text-center">Paq</th><th class="text-center">Dañ</th><th class="text-center">Ef%</th><th class="text-center">PPH</th></tr></thead>
@@ -110,6 +100,7 @@
                     <span>3. ETIQUETADO</span>
                     <span id="label-etiquetado" class="text-[10px] bg-black/20 px-2 py-1 rounded">0</span>
                 </div>
+                <div id="chart-etiquetado" class="w-full h-[100px] p-2 bg-[#1a1a1a]"></div>
                 <div class="table-container">
                     <table>
                         <thead><tr><th onclick="sortTable('etiquetado', 0)">Nombre</th><th>Rango</th><th class="text-center">Paq</th><th class="text-center">Err</th><th class="text-center">Ef%</th><th class="text-center">PPH</th></tr></thead>
@@ -161,11 +152,32 @@
             processData();
         }
 
-        // Helper para colores según regla: 100% verde, 99-100% amarillo, <99% rojo
         function getEfColor(ef) {
-            if (ef >= 100) return 'text-emerald-500';
-            if (ef >= 99) return 'text-yellow-400';
-            return 'text-red-500';
+            if (ef >= 100) return 'text-emerald-500'; // 100% Verde
+            if (ef >= 99) return 'text-yellow-400';   // 99% - 99.9% Amarillo
+            return 'text-red-500';                    // < 99% Rojo
+        }
+
+        function renderMiniChart(type) {
+            const container = document.getElementById(`chart-${type}`);
+            const data = tablesData[type].slice(0, 3);
+            if (data.length === 0) { container.innerHTML = ''; return; }
+
+            const maxVal = data[0][currentSort];
+            let svg = `<svg width="100%" height="90" viewBox="0 0 250 90" preserveAspectRatio="none">`;
+            const barColor = type === 'muelle' ? '#3b82f6' : type === 'inyeccion' ? '#f97316' : '#a855f7';
+            
+            data.forEach((item, i) => {
+                const width = maxVal > 0 ? (item[currentSort] / maxVal) * 150 : 0;
+                const y = i * 25;
+                svg += `
+                    <rect x="70" y="${y}" width="${width}" height="15" rx="2" fill="${barColor}" fill-opacity="0.8" />
+                    <text x="65" y="${y + 12}" text-anchor="end" class="bar-label" style="font-size: 9px;">${item.nombre.split(' ')[0]}</text>
+                    <text x="${75 + width}" y="${y + 12}" class="bar-value" style="font-size: 9px;">${item[currentSort].toFixed(1)}</text>
+                `;
+            });
+            svg += `</svg>`;
+            container.innerHTML = svg;
         }
 
         function processData() {
@@ -208,9 +220,9 @@
                 });
                 tablesData[type].sort((a, b) => b[currentSort] - a[currentSort]);
                 renderTable(type);
+                renderMiniChart(type);
             });
             renderTops();
-            renderCategoryCharts();
         }
 
         function renderTops() {
@@ -233,46 +245,14 @@
                             <div>
                                 <p class="text-[10px] text-gray-400 mb-1">EFICIENCIA</p>
                                 <p class="text-lg font-extrabold text-white">${top.eficiencia.toFixed(2)}%</p>
-                                <div class="mini-bar mt-1"><div class="mini-bar-fill" style="width: ${Math.min(top.eficiencia, 100)}%; background: ${color}"></div></div>
                             </div>
                             <div>
                                 <p class="text-[10px] text-gray-400 mb-1">PPH (PAQ/HR)</p>
                                 <p class="text-lg font-extrabold text-white">${top.pph}</p>
-                                <p class="text-[9px] text-emerald-400 font-bold">↑ RENDIMIENTO</p>
                             </div>
                         </div>
                     </div>
                 `;
-            });
-        }
-
-        function renderCategoryCharts() {
-            const wrapper = document.getElementById('charts-wrapper');
-            wrapper.innerHTML = "";
-            const categories = [
-                { id: 'muelle', label: 'MUELLE', color: '#3b82f6' },
-                { id: 'inyeccion', label: 'INYECCIÓN', color: '#f97316' },
-                { id: 'etiquetado', label: 'ETIQUETADO', color: '#a855f7' }
-            ];
-
-            categories.forEach(cat => {
-                const data = tablesData[cat.id].slice(0, 5); // Top 5
-                if (data.length === 0) return;
-
-                const maxVal = data[0][currentSort];
-                let svgHtml = `<div class="bg-black/20 p-3 rounded-lg border border-white/5"><h4 class="text-[10px] font-bold text-gray-400 mb-3">${cat.label}</h4><svg width="100%" height="150" viewBox="0 0 400 150" preserveAspectRatio="none">`;
-                
-                data.forEach((item, i) => {
-                    const barWidth = maxVal > 0 ? (item[currentSort] / maxVal) * 250 : 0;
-                    const y = i * 28;
-                    svgHtml += `
-                        <rect x="80" y="${y}" width="${barWidth}" height="18" rx="2" fill="${cat.color}" fill-opacity="0.8" />
-                        <text x="75" y="${y + 13}" text-anchor="end" class="bar-label">${item.nombre.split(' ')[0]}</text>
-                        <text x="${85 + barWidth}" y="${y + 13}" class="bar-value">${item[currentSort].toLocaleString(undefined, {minimumFractionDigits: 0, maximumFractionDigits: 2})}</text>
-                    `;
-                });
-                svgHtml += `</svg></div>`;
-                wrapper.innerHTML += svgHtml;
             });
         }
 
