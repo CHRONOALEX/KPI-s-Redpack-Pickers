@@ -14,10 +14,21 @@
         table { width: 100%; border-collapse: collapse; table-layout: auto; }
         thead th { position: sticky; top: 0; background: #2d2d2d; color: #94a3b8; padding: 12px; text-align: left; font-size: 0.65rem; text-transform: uppercase; z-index: 10; border-bottom: 2px solid #404040; cursor: pointer; }
         tbody td { padding: 12px; font-size: 0.75rem; color: #cbd5e1; border-bottom: 1px solid #2d2d2d; }
-        .kpi-card { background: #1e1e1e; border-radius: 8px; border: 1px solid #333; display: flex; flex-direction: column; }
         
-        @keyframes psp-shimmer { 0% { background-position: -200% 0; } 100% { background-position: 200% 0; } }
-        .psp-header { padding: 12px; font-weight: 800; text-transform: uppercase; background-size: 200% auto; animation: psp-shimmer 4s linear infinite; color: white; display: flex; justify-content: space-between; align-items: center; border-radius: 8px 8px 0 0; }
+        .kpi-card { background: #1e1e1e; border-radius: 8px; border: 1px solid #333; display: flex; flex-direction: column; transition: all 0.3s ease; }
+        
+        /* Gold Glow Animation */
+        .golden-glow {
+            animation: gold-pulse 2s infinite;
+            border: 2px solid #eab308 !important;
+        }
+        @keyframes gold-pulse {
+            0% { box-shadow: 0 0 5px #eab308; }
+            50% { box-shadow: 0 0 20px #eab308; }
+            100% { box-shadow: 0 0 5px #eab308; }
+        }
+
+        .psp-header { padding: 12px; font-weight: 800; text-transform: uppercase; color: white; display: flex; justify-content: space-between; align-items: center; border-radius: 8px 8px 0 0; }
         .bg-muelle { background-image: linear-gradient(90deg, #1e3a8a 0%, #3b82f6 50%, #1e3a8a 100%); }
         .bg-etiquetado { background-image: linear-gradient(90deg, #581c87 0%, #a855f7 50%, #581c87 100%); }
         .bg-inyeccion { background-image: linear-gradient(90deg, #7c2d12 0%, #f97316 50%, #7c2d12 100%); }
@@ -29,6 +40,7 @@
         
         .bar-label { fill: #cbd5e1; font-weight: 700; font-size: 11px; }
         .bar-value-text { fill: #ffffff; font-weight: 800; font-size: 10px; pointer-events: none; }
+        .comparison-text { fill: #22c55e; font-weight: 800; font-size: 9px; }
     </style>
 </head>
 <body>
@@ -61,12 +73,12 @@
         <section id="top-section" class="grid grid-cols-3 gap-4"></section>
 
         <div class="dashboard-grid">
-            <div class="kpi-card">
+            <div id="card-muelle" class="kpi-card">
                 <div class="psp-header bg-muelle">
                     <span>1. MUELLE</span>
                     <span id="label-muelle" class="text-[10px] bg-black/20 px-2 py-1 rounded">0</span>
                 </div>
-                <div id="chart-muelle" class="w-full h-[140px] p-4 bg-[#1a1a1a]"></div>
+                <div id="chart-muelle" class="w-full h-[140px] p-4 flex justify-center items-center bg-[#1a1a1a]"></div>
                 <div class="table-container">
                     <table id="table-muelle">
                         <thead><tr><th onclick="sortTable('muelle', 0)">Nombre</th><th>Rango</th><th class="text-center">Rut</th><th class="text-center">Paq</th><th class="text-center">Err</th><th class="text-center">Ef%</th><th class="text-center">PPH</th></tr></thead>
@@ -75,12 +87,12 @@
                 </div>
             </div>
 
-            <div class="kpi-card">
+            <div id="card-inyeccion" class="kpi-card">
                 <div class="psp-header bg-inyeccion">
                     <span>2. INYECCIÓN</span>
                     <span id="label-inyeccion" class="text-[10px] bg-black/20 px-2 py-1 rounded">0</span>
                 </div>
-                <div id="chart-inyeccion" class="w-full h-[140px] p-4 bg-[#1a1a1a]"></div>
+                <div id="chart-inyeccion" class="w-full h-[140px] p-4 flex justify-center items-center bg-[#1a1a1a]"></div>
                 <div class="table-container">
                     <table>
                         <thead><tr><th onclick="sortTable('inyeccion', 0)">Nombre</th><th>Rango</th><th class="text-center">Paq</th><th class="text-center">Dañ</th><th class="text-center">Ef%</th><th class="text-center">PPH</th></tr></thead>
@@ -89,12 +101,12 @@
                 </div>
             </div>
 
-            <div class="kpi-card">
+            <div id="card-etiquetado" class="kpi-card">
                 <div class="psp-header bg-etiquetado">
                     <span>3. ETIQUETADO</span>
                     <span id="label-etiquetado" class="text-[10px] bg-black/20 px-2 py-1 rounded">0</span>
                 </div>
-                <div id="chart-etiquetado" class="w-full h-[140px] p-4 bg-[#1a1a1a]"></div>
+                <div id="chart-etiquetado" class="w-full h-[140px] p-4 flex justify-center items-center bg-[#1a1a1a]"></div>
                 <div class="table-container">
                     <table>
                         <thead><tr><th onclick="sortTable('etiquetado', 0)">Nombre</th><th>Rango</th><th class="text-center">Paq</th><th class="text-center">Err</th><th class="text-center">Ef%</th><th class="text-center">PPH</th></tr></thead>
@@ -154,28 +166,38 @@
 
         function renderMiniChart(type) {
             const container = document.getElementById(`chart-${type}`);
+            const card = document.getElementById(`card-${type}`);
             const data = tablesData[type].slice(0, 3);
             if (data.length === 0) { container.innerHTML = ''; return; }
 
+            // Lógica de Glow Dorado
+            const isTopPerfect = data[0].eficiencia >= 100;
+            if (isTopPerfect) card.classList.add('golden-glow');
+            else card.classList.remove('golden-glow');
+
             const maxVal = data[0][currentSort];
-            // SVG más alto (140) y ancho completo (350)
-            let svg = `<svg width="100%" height="130" viewBox="0 0 350 130" preserveAspectRatio="none">`;
+            let svg = `<svg width="100%" height="130" viewBox="0 0 350 130">`;
             
             data.forEach((item, i) => {
                 const isPerfect = item.eficiencia >= 100;
-                // Si es perfecto (amarillo), si no, color de marca
                 const barColor = isPerfect ? '#eab308' : (type === 'muelle' ? '#3b82f6' : type === 'inyeccion' ? '#f97316' : '#a855f7');
-                
-                // Ancho ajustado para ocupar gran parte del contenedor (escala a 280)
-                const width = maxVal > 0 ? (item[currentSort] / maxVal) * 280 : 0;
-                const y = i * 40; // Espaciado vertical mayor
-                const displayVal = item[currentSort].toFixed(2);
+                const width = maxVal > 0 ? (item[currentSort] / maxVal) * 200 : 0;
+                const y = i * 40; 
                 
                 svg += `
                     <text x="5" y="${y + 15}" class="bar-label">${item.nombre.split(' ')[0]}</text>
                     <rect x="0" y="${y + 22}" width="${width < 50 ? 50 : width}" height="22" rx="4" fill="${barColor}" fill-opacity="0.9" />
-                    <text x="${width < 50 ? 55 : width - 5}" y="${y + 37}" text-anchor="${width < 50 ? 'start' : 'end'}" class="bar-value-text">${displayVal}</text>
+                    <text x="${width < 50 ? 55 : width - 5}" y="${y + 37}" text-anchor="${width < 50 ? 'start' : 'end'}" class="bar-value-text">${item[currentSort].toFixed(2)}</text>
                 `;
+
+                // Comparativa contra el 2do lugar (solo en la primera fila)
+                if (i === 0 && data.length > 1) {
+                    const diff = (item.eficiencia - data[1].eficiencia).toFixed(2);
+                    svg += `
+                        <path d="M ${width + 10} ${y + 33} l 5 -8 l 5 8 Z" fill="#22c55e" />
+                        <text x="${width + 22}" y="${y + 35}" class="comparison-text">+${diff}%</text>
+                    `;
+                }
             });
             svg += `</svg>`;
             container.innerHTML = svg;
@@ -232,12 +254,13 @@
             ['muelle', 'inyeccion', 'etiquetado'].forEach((type) => {
                 const top = tablesData[type][0];
                 if (!top) return;
-                const color = top.eficiencia >= 100 ? '#eab308' : (type === 'muelle' ? '#3b82f6' : type === 'inyeccion' ? '#f97316' : '#a855f7');
+                const isPerfect = top.eficiencia >= 100;
+                const color = isPerfect ? '#eab308' : (type === 'muelle' ? '#3b82f6' : type === 'inyeccion' ? '#f97316' : '#a855f7');
                 container.innerHTML += `
-                    <div class="kpi-card p-4 border-l-4" style="border-color: ${color}">
+                    <div class="kpi-card p-4 border-l-4 ${isPerfect ? 'golden-glow' : ''}" style="border-color: ${color}">
                         <div class="flex justify-between mb-3">
                             <div>
-                                <h4 class="text-white font-black text-sm uppercase">${top.eficiencia >= 100 ? '⭐' : '🥇'} ${top.nombre}</h4>
+                                <h4 class="text-white font-black text-sm uppercase">${isPerfect ? '⭐' : '🥇'} ${top.nombre}</h4>
                                 <p class="text-[9px] text-gray-500 font-bold">${type.toUpperCase()}</p>
                             </div>
                             <span class="text-[10px] bg-white/10 text-white px-2 py-1 rounded h-fit font-bold">#1 ${currentSort.toUpperCase()}</span>
