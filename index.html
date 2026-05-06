@@ -10,7 +10,7 @@
     <style>
         body { font-family: 'Lexend', sans-serif; background-color: #121212; color: #e2e8f0; }
         .dashboard-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; }
-        .table-container { overflow-x: auto; max-height: 500px; background: #1e1e1e; }
+        .table-container { background: #1e1e1e; }
         table { width: 100%; border-collapse: collapse; }
         thead th { position: sticky; top: 0; background: #2d2d2d; color: #94a3b8; padding: 10px; text-align: left; font-size: 0.65rem; text-transform: uppercase; z-index: 10; border-bottom: 2px solid #404040; cursor: pointer; }
         tbody td { padding: 10px; font-size: 0.75rem; color: #cbd5e1; border-bottom: 1px solid #2d2d2d; }
@@ -18,7 +18,7 @@
         
         /* Animación PSP */
         @keyframes psp-shimmer { 0% { background-position: -200% 0; } 100% { background-position: 200% 0; } }
-        .psp-header { padding: 12px; font-weight: 800; text-transform: uppercase; background-size: 200% auto; animation: psp-shimmer 4s linear infinite; color: white; display: flex; justify-content: space-between; }
+        .psp-header { padding: 12px; font-weight: 800; text-transform: uppercase; background-size: 200% auto; animation: psp-shimmer 4s linear infinite; color: white; display: flex; justify-content: space-between; align-items: center; }
         .bg-muelle { background-image: linear-gradient(90deg, #1e3a8a 0%, #3b82f6 50%, #1e3a8a 100%); }
         .bg-etiquetado { background-image: linear-gradient(90deg, #581c87 0%, #a855f7 50%, #581c87 100%); }
         .bg-inyeccion { background-image: linear-gradient(90deg, #7c2d12 0%, #f97316 50%, #7c2d12 100%); }
@@ -66,7 +66,14 @@
 
         <div class="dashboard-grid">
             <div class="kpi-card" id="card-muelle">
-                <div class="psp-header bg-muelle"><span>1. MUELLE</span><span id="label-muelle" class="text-[10px] bg-black/20 px-2 py-1 rounded">0</span></div>
+                <div class="psp-header bg-muelle">
+                    <span>1. MUELLE</span>
+                    <select onchange="updateSort('muelle', this.value)" class="bg-black/30 text-[10px] text-white rounded px-1 outline-none">
+                        <option value="eficiencia">Eficiencia</option>
+                        <option value="pph">PPH</option>
+                    </select>
+                    <span id="label-muelle" class="text-[10px] bg-black/20 px-2 py-1 rounded">0</span>
+                </div>
                 <div class="table-container">
                     <table id="table-muelle">
                         <thead><tr><th onclick="sortTable('muelle', 0)">Nombre</th><th>Rango</th><th class="text-center">Rut</th><th class="text-center">Paq</th><th class="text-center">Err</th><th class="text-center">Ef%</th><th class="text-center">PPH</th><th class="text-center">Días</th></tr></thead>
@@ -76,7 +83,14 @@
             </div>
 
             <div class="kpi-card" id="card-inyeccion">
-                <div class="psp-header bg-inyeccion"><span>2. INYECCIÓN</span><span id="label-inyeccion" class="text-[10px] bg-black/20 px-2 py-1 rounded">0</span></div>
+                <div class="psp-header bg-inyeccion">
+                    <span>2. INYECCIÓN</span>
+                    <select onchange="updateSort('inyeccion', this.value)" class="bg-black/30 text-[10px] text-white rounded px-1 outline-none">
+                        <option value="eficiencia">Eficiencia</option>
+                        <option value="pph">PPH</option>
+                    </select>
+                    <span id="label-inyeccion" class="text-[10px] bg-black/20 px-2 py-1 rounded">0</span>
+                </div>
                 <div class="table-container">
                     <table id="table-inyeccion">
                         <thead><tr><th onclick="sortTable('inyeccion', 0)">Nombre</th><th>Rango</th><th class="text-center">Paq</th><th class="text-center">Dañ</th><th class="text-center">Ef%</th><th class="text-center">PPH</th><th class="text-center">Días</th></tr></thead>
@@ -86,7 +100,14 @@
             </div>
 
             <div class="kpi-card" id="card-etiquetado">
-                <div class="psp-header bg-etiquetado"><span>3. ETIQUETADO</span><span id="label-etiquetado" class="text-[10px] bg-black/20 px-2 py-1 rounded">0</span></div>
+                <div class="psp-header bg-etiquetado">
+                    <span>3. ETIQUETADO</span>
+                    <select onchange="updateSort('etiquetado', this.value)" class="bg-black/30 text-[10px] text-white rounded px-1 outline-none">
+                        <option value="eficiencia">Eficiencia</option>
+                        <option value="pph">PPH</option>
+                    </select>
+                    <span id="label-etiquetado" class="text-[10px] bg-black/20 px-2 py-1 rounded">0</span>
+                </div>
                 <div class="table-container">
                     <table id="table-etiquetado">
                         <thead><tr><th onclick="sortTable('etiquetado', 0)">Nombre</th><th>Rango</th><th class="text-center">Paq</th><th class="text-center">Err</th><th class="text-center">Ef%</th><th class="text-center">PPH</th><th class="text-center">Días</th></tr></thead>
@@ -100,7 +121,7 @@
             <div class="p-3 font-bold text-red-500 text-sm flex items-center gap-2">
                 <span>🔻 ANALÍTICA DE ATENCIÓN (Peor Rendimiento Global)</span>
             </div>
-            <div class="table-container max-height-[200px]">
+            <div class="table-container">
                 <table>
                     <thead><tr><th>Colaborador</th><th>Proceso</th><th class="text-center">Paquetes</th><th class="text-center">Errores</th><th class="text-center">Eficiencia</th><th class="text-center">PPH</th></tr></thead>
                     <tbody id="body-peores"></tbody>
@@ -130,7 +151,6 @@
             finally { document.getElementById('loader').style.display = 'none'; }
         }
 
-        // Función mejorada para encontrar columnas ignorando acentos y espacios
         function findKey(row, name) {
             const normalizeStr = (str) => String(str).toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/\s/g, '');
             const target = normalizeStr(name);
@@ -151,6 +171,11 @@
             showingAlerts = !showingAlerts;
             document.getElementById('btn-alert').innerText = showingAlerts ? "✅ MOSTRAR TODO" : "⚠️ ANALIZAR ALERTAS";
             processData();
+        }
+
+        function updateSort(type, criterion) {
+            tablesData[type].sort((a, b) => b[criterion] - a[criterion]);
+            renderTable(type);
         }
 
         function processData() {
@@ -181,7 +206,6 @@
                     if (type === 'muelle') s.rutas += parseFloat(row[findKey(row, 'Rutas x Colaborador')]) || 0;
                     s.paquetes += parseFloat(row[findKey(row, 'Paquetes Procesados x Colaborador')]) || 0;
                     
-                    // Lógica corregida de acumulación de errores según proceso
                     if (type === 'inyeccion') {
                         s.errores += parseFloat(row[findKey(row, 'Paquetes Dañados/ SC')]) || 0;
                     } else if (type === 'muelle') {
