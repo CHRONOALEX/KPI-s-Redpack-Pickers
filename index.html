@@ -10,10 +10,10 @@
     <style>
         body { font-family: 'Lexend', sans-serif; background-color: #121212; color: #e2e8f0; }
         .dashboard-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; align-items: start; }
-        .table-container { background: #1e1e1e; width: 100%; overflow: hidden; }
+        .table-container { background: #1e1e1e; width: 100%; overflow: visible; }
         table { width: 100%; border-collapse: collapse; table-layout: auto; }
-        thead th { position: sticky; top: 0; background: #2d2d2d; color: #94a3b8; padding: 8px; text-align: left; font-size: 0.65rem; text-transform: uppercase; z-index: 10; border-bottom: 2px solid #404040; cursor: pointer; }
-        tbody td { padding: 8px; font-size: 0.75rem; color: #cbd5e1; border-bottom: 1px solid #2d2d2d; }
+        thead th { position: sticky; top: 0; background: #2d2d2d; color: #94a3b8; padding: 12px; text-align: left; font-size: 0.65rem; text-transform: uppercase; z-index: 10; border-bottom: 2px solid #404040; cursor: pointer; }
+        tbody td { padding: 12px; font-size: 0.75rem; color: #cbd5e1; border-bottom: 1px solid #2d2d2d; }
         .kpi-card { background: #1e1e1e; border-radius: 8px; border: 1px solid #333; display: flex; flex-direction: column; }
         
         @keyframes psp-shimmer { 0% { background-position: -200% 0; } 100% { background-position: 200% 0; } }
@@ -27,8 +27,8 @@
         header { background-color: #630d0d; }
         .loading-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 1000; }
         
-        .bar-label { fill: #cbd5e1; font-weight: 700; font-size: 10px; }
-        .bar-value-text { fill: #ffffff; font-weight: 800; font-size: 9px; pointer-events: none; }
+        .bar-label { fill: #cbd5e1; font-weight: 700; font-size: 11px; }
+        .bar-value-text { fill: #ffffff; font-weight: 800; font-size: 10px; pointer-events: none; }
     </style>
 </head>
 <body>
@@ -40,30 +40,24 @@
 
     <header class="p-4 shadow-xl border-b border-red-900">
         <div class="max-w-[1600px] mx-auto flex justify-between items-center">
-            <div class="flex items-center gap-4">
-                <div>
-                    <h1 class="text-xl font-extrabold text-white">PICKING KPI DASHBOARD</h1>
-                    <p class="text-red-200 text-xs">Métrica Avanzada de Eficiencia</p>
-                </div>
+            <div>
+                <h1 class="text-xl font-extrabold text-white">PICKING KPI DASHBOARD</h1>
+                <p class="text-red-200 text-xs">Métrica Avanzada de Eficiencia</p>
             </div>
             <div class="flex items-center gap-4">
-                <div class="flex items-center gap-2 bg-black/40 p-1 rounded-lg border border-red-900/50">
-                    <span class="text-[10px] font-bold text-red-300 ml-2">ORDENAR POR:</span>
-                    <select id="global-sort" onchange="updateGlobalSort()" class="bg-transparent text-white text-xs rounded p-1 outline-none font-bold cursor-pointer">
-                        <option value="eficiencia">Eficiencia (%)</option>
-                        <option value="pph">Paquetes por Hora (PPH)</option>
-                    </select>
-                </div>
+                <select id="global-sort" onchange="updateGlobalSort()" class="bg-black/40 text-white text-xs rounded p-2 outline-none font-bold border border-red-900/50">
+                    <option value="eficiencia">Ordenar por Eficiencia (%)</option>
+                    <option value="pph">Ordenar por PPH</option>
+                </select>
                 <select id="filter-semana" onchange="applyFilters()" class="bg-black/30 border border-red-400 text-white text-xs rounded p-2 outline-none">
                     <option value="all">Semanas</option>
                 </select>
-                <button onclick="fetchExcel()" class="bg-white text-red-900 font-black text-xs py-2 px-4 rounded hover:bg-red-100 transition-all shadow-lg">ACTUALIZAR</button>
+                <button onclick="fetchExcel()" class="bg-white text-red-900 font-black text-xs py-2 px-4 rounded hover:bg-red-100 transition-all">ACTUALIZAR</button>
             </div>
         </div>
     </header>
 
     <main class="max-w-[1600px] mx-auto p-4 space-y-6">
-        
         <section id="top-section" class="grid grid-cols-3 gap-4"></section>
 
         <div class="dashboard-grid">
@@ -72,7 +66,7 @@
                     <span>1. MUELLE</span>
                     <span id="label-muelle" class="text-[10px] bg-black/20 px-2 py-1 rounded">0</span>
                 </div>
-                <div id="chart-muelle" class="w-full h-[120px] p-2 bg-[#1a1a1a]"></div>
+                <div id="chart-muelle" class="w-full h-[140px] p-4 bg-[#1a1a1a]"></div>
                 <div class="table-container">
                     <table id="table-muelle">
                         <thead><tr><th onclick="sortTable('muelle', 0)">Nombre</th><th>Rango</th><th class="text-center">Rut</th><th class="text-center">Paq</th><th class="text-center">Err</th><th class="text-center">Ef%</th><th class="text-center">PPH</th></tr></thead>
@@ -86,7 +80,7 @@
                     <span>2. INYECCIÓN</span>
                     <span id="label-inyeccion" class="text-[10px] bg-black/20 px-2 py-1 rounded">0</span>
                 </div>
-                <div id="chart-inyeccion" class="w-full h-[120px] p-2 bg-[#1a1a1a]"></div>
+                <div id="chart-inyeccion" class="w-full h-[140px] p-4 bg-[#1a1a1a]"></div>
                 <div class="table-container">
                     <table>
                         <thead><tr><th onclick="sortTable('inyeccion', 0)">Nombre</th><th>Rango</th><th class="text-center">Paq</th><th class="text-center">Dañ</th><th class="text-center">Ef%</th><th class="text-center">PPH</th></tr></thead>
@@ -100,7 +94,7 @@
                     <span>3. ETIQUETADO</span>
                     <span id="label-etiquetado" class="text-[10px] bg-black/20 px-2 py-1 rounded">0</span>
                 </div>
-                <div id="chart-etiquetado" class="w-full h-[120px] p-2 bg-[#1a1a1a]"></div>
+                <div id="chart-etiquetado" class="w-full h-[140px] p-4 bg-[#1a1a1a]"></div>
                 <div class="table-container">
                     <table>
                         <thead><tr><th onclick="sortTable('etiquetado', 0)">Nombre</th><th>Rango</th><th class="text-center">Paq</th><th class="text-center">Err</th><th class="text-center">Ef%</th><th class="text-center">PPH</th></tr></thead>
@@ -164,19 +158,23 @@
             if (data.length === 0) { container.innerHTML = ''; return; }
 
             const maxVal = data[0][currentSort];
-            let svg = `<svg width="100%" height="110" viewBox="0 0 300 110" preserveAspectRatio="none">`;
-            const barColor = type === 'muelle' ? '#3b82f6' : type === 'inyeccion' ? '#f97316' : '#a855f7';
+            // SVG más alto (140) y ancho completo (350)
+            let svg = `<svg width="100%" height="130" viewBox="0 0 350 130" preserveAspectRatio="none">`;
             
             data.forEach((item, i) => {
-                // width: 0 a 200px para el relleno
-                const width = maxVal > 0 ? (item[currentSort] / maxVal) * 200 : 0;
-                const y = i * 35;
+                const isPerfect = item.eficiencia >= 100;
+                // Si es perfecto (amarillo), si no, color de marca
+                const barColor = isPerfect ? '#eab308' : (type === 'muelle' ? '#3b82f6' : type === 'inyeccion' ? '#f97316' : '#a855f7');
+                
+                // Ancho ajustado para ocupar gran parte del contenedor (escala a 280)
+                const width = maxVal > 0 ? (item[currentSort] / maxVal) * 280 : 0;
+                const y = i * 40; // Espaciado vertical mayor
                 const displayVal = item[currentSort].toFixed(2);
                 
                 svg += `
-                    <text x="5" y="${y + 13}" class="bar-label">${item.nombre.split(' ')[0]}</text>
-                    <rect x="0" y="${y + 18}" width="${width < 40 ? 40 : width}" height="18" rx="2" fill="${barColor}" fill-opacity="0.9" />
-                    <text x="${width < 40 ? 45 : width - 5}" y="${y + 31}" text-anchor="${width < 40 ? 'start' : 'end'}" class="bar-value-text">${displayVal}</text>
+                    <text x="5" y="${y + 15}" class="bar-label">${item.nombre.split(' ')[0]}</text>
+                    <rect x="0" y="${y + 22}" width="${width < 50 ? 50 : width}" height="22" rx="4" fill="${barColor}" fill-opacity="0.9" />
+                    <text x="${width < 50 ? 55 : width - 5}" y="${y + 37}" text-anchor="${width < 50 ? 'start' : 'end'}" class="bar-value-text">${displayVal}</text>
                 `;
             });
             svg += `</svg>`;
@@ -234,12 +232,12 @@
             ['muelle', 'inyeccion', 'etiquetado'].forEach((type) => {
                 const top = tablesData[type][0];
                 if (!top) return;
-                const color = type === 'muelle' ? '#3b82f6' : type === 'inyeccion' ? '#f97316' : '#a855f7';
+                const color = top.eficiencia >= 100 ? '#eab308' : (type === 'muelle' ? '#3b82f6' : type === 'inyeccion' ? '#f97316' : '#a855f7');
                 container.innerHTML += `
                     <div class="kpi-card p-4 border-l-4" style="border-color: ${color}">
                         <div class="flex justify-between mb-3">
                             <div>
-                                <h4 class="text-white font-black text-sm uppercase">🥇 ${top.nombre}</h4>
+                                <h4 class="text-white font-black text-sm uppercase">${top.eficiencia >= 100 ? '⭐' : '🥇'} ${top.nombre}</h4>
                                 <p class="text-[9px] text-gray-500 font-bold">${type.toUpperCase()}</p>
                             </div>
                             <span class="text-[10px] bg-white/10 text-white px-2 py-1 rounded h-fit font-bold">#1 ${currentSort.toUpperCase()}</span>
