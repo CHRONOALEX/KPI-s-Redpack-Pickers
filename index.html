@@ -235,9 +235,15 @@
             if (el) el.innerText = tablesData[type].length;
             const body = document.getElementById(`body-${type}`);
             body.innerHTML = tablesData[type].map(s => {
+                // Lógica de clase de fila (Efecto dorado si >= 100)
                 let rowClass = "";
                 if (s.eficiencia >= 100) rowClass = "gold-shine";
                 else if (s.errores === 0 && s.paquetes > 500) rowClass = "perfect-pick";
+                
+                // Lógica de color de texto eficiencia
+                let efColor = "text-red-500";
+                if (s.eficiencia >= 100) efColor = "text-green-500";
+                else if (s.eficiencia >= 99) efColor = "text-yellow-400";
                 
                 return `
                 <tr class="${rowClass}">
@@ -246,7 +252,7 @@
                     ${type === 'muelle' ? `<td class="text-center font-bold text-blue-400">${s.rutas}</td>` : ''}
                     <td class="text-center font-bold text-emerald-400">${s.paquetes.toLocaleString()}</td>
                     <td class="text-center text-red-400">${s.errores}</td>
-                    <td class="text-center ${s.eficiencia >= 98 ? 'text-yellow-400' : 'text-red-500'} font-bold">${s.eficiencia.toFixed(1)}%</td>
+                    <td class="text-center ${efColor} font-bold">${s.eficiencia.toFixed(1)}%</td>
                     <td class="text-center text-white font-bold">${s.pph}</td>
                 </tr>`;
             }).join('');
