@@ -14,7 +14,7 @@
         table { width: 100%; border-collapse: collapse; table-layout: auto; }
         thead th { position: sticky; top: 0; background: #2d2d2d; color: #94a3b8; padding: 8px; text-align: left; font-size: 0.65rem; text-transform: uppercase; z-index: 10; border-bottom: 2px solid #404040; cursor: pointer; }
         tbody td { padding: 8px; font-size: 0.75rem; color: #cbd5e1; border-bottom: 1px solid #2d2d2d; }
-        .kpi-card { background: #1e1e1e; border-radius: 8px; border: 1px solid #333; }
+        .kpi-card { background: #1e1e1e; border-radius: 8px; border: 1px solid #333; overflow: hidden; }
         
         @keyframes psp-shimmer { 0% { background-position: -200% 0; } 100% { background-position: 200% 0; } }
         .psp-header { padding: 12px; font-weight: 800; text-transform: uppercase; background-size: 200% auto; animation: psp-shimmer 4s linear infinite; color: white; display: flex; justify-content: space-between; align-items: center; }
@@ -28,11 +28,8 @@
         .mini-bar { height: 6px; border-radius: 3px; background: #333; overflow: hidden; width: 100%; }
         .mini-bar-fill { height: 100%; transition: width 0.5s ease-in-out; }
         
-        /* Estilos Gráfico */
-        .chart-container { background: #1e1e1e; border-radius: 8px; border: 1px solid #333; padding: 20px; }
-        .bar-label { font-size: 10px; fill: #94a3b8; font-weight: 600; }
-        .bar-value { font-size: 11px; fill: #fff; font-weight: 800; }
-        .diff-label { font-size: 9px; fill: #fbbf24; font-weight: bold; }
+        .bar-label { font-size: 9px; fill: #94a3b8; font-weight: 600; }
+        .bar-value { font-size: 10px; fill: #fff; font-weight: 800; }
     </style>
 </head>
 <body>
@@ -70,19 +67,13 @@
         
         <section id="top-section" class="grid grid-cols-3 gap-4"></section>
 
-        <section class="chart-container">
-            <h3 class="text-xs font-bold text-gray-400 mb-4 uppercase tracking-widest flex items-center gap-2">
-                <span class="w-2 h-2 bg-yellow-500 rounded-full"></span> Comparativa de Liderazgo (Top 3 Global)
-            </h3>
-            <div id="chart-wrapper" class="w-full h-[220px]"></div>
-        </section>
-
         <div class="dashboard-grid">
             <div class="kpi-card">
                 <div class="psp-header bg-muelle">
                     <span>1. MUELLE</span>
                     <span id="label-muelle" class="text-[10px] bg-black/20 px-2 py-1 rounded">0</span>
                 </div>
+                <div id="chart-muelle" class="w-full h-[120px] px-2 py-2 bg-[#1e1e1e]"></div>
                 <div class="table-container">
                     <table id="table-muelle">
                         <thead><tr><th onclick="sortTable('muelle', 0)">Nombre</th><th>Rango</th><th class="text-center">Rut</th><th class="text-center">Paq</th><th class="text-center">Err</th><th class="text-center">Ef%</th><th class="text-center">PPH</th></tr></thead>
@@ -96,6 +87,7 @@
                     <span>2. INYECCIÓN</span>
                     <span id="label-inyeccion" class="text-[10px] bg-black/20 px-2 py-1 rounded">0</span>
                 </div>
+                <div id="chart-inyeccion" class="w-full h-[120px] px-2 py-2 bg-[#1e1e1e]"></div>
                 <div class="table-container">
                     <table>
                         <thead><tr><th onclick="sortTable('inyeccion', 0)">Nombre</th><th>Rango</th><th class="text-center">Paq</th><th class="text-center">Dañ</th><th class="text-center">Ef%</th><th class="text-center">PPH</th></tr></thead>
@@ -109,6 +101,7 @@
                     <span>3. ETIQUETADO</span>
                     <span id="label-etiquetado" class="text-[10px] bg-black/20 px-2 py-1 rounded">0</span>
                 </div>
+                <div id="chart-etiquetado" class="w-full h-[120px] px-2 py-2 bg-[#1e1e1e]"></div>
                 <div class="table-container">
                     <table>
                         <thead><tr><th onclick="sortTable('etiquetado', 0)">Nombre</th><th>Rango</th><th class="text-center">Paq</th><th class="text-center">Err</th><th class="text-center">Ef%</th><th class="text-center">PPH</th></tr></thead>
@@ -201,9 +194,9 @@
                 });
                 tablesData[type].sort((a, b) => b[currentSort] - a[currentSort]);
                 renderTable(type);
+                renderCategoryChart(type);
             });
             renderTops();
-            renderComparisonChart();
         }
 
         function renderTops() {
@@ -239,34 +232,26 @@
             });
         }
 
-        function renderComparisonChart() {
-            const all = [...tablesData.muelle, ...tablesData.inyeccion, ...tablesData.etiquetado];
-            const sortedGlobal = all.sort((a, b) => b[currentSort] - a[currentSort]).slice(0, 3);
-            const wrapper = document.getElementById('chart-wrapper');
-            if(sortedGlobal.length < 2) { wrapper.innerHTML = ""; return; }
+        function renderCategoryChart(type) {
+            const data = tablesData[type].slice(0, 3);
+            const wrapper = document.getElementById(`chart-${type}`);
+            if(!wrapper) return;
+            if(data.length === 0) { wrapper.innerHTML = ""; return; }
 
-            const maxVal = sortedGlobal[0][currentSort];
-            const diff1 = (((sortedGlobal[0][currentSort] - sortedGlobal[1][currentSort]) / sortedGlobal[1][currentSort]) * 100).toFixed(1);
-            const diff2 = sortedGlobal[2] ? (((sortedGlobal[1][currentSort] - sortedGlobal[2][currentSort]) / sortedGlobal[2][currentSort]) * 100).toFixed(1) : 0;
+            const maxVal = data[0][currentSort] || 1;
+            const color = type === 'muelle' ? '#3b82f6' : type === 'inyeccion' ? '#f97316' : '#a855f7';
 
-            let svgHtml = `<svg width="100%" height="100%" viewBox="0 0 800 180" preserveAspectRatio="none">`;
+            let svgHtml = `<svg width="100%" height="100%" viewBox="0 0 300 120" preserveAspectRatio="none">`;
             
-            sortedGlobal.forEach((item, i) => {
-                const barWidth = (item[currentSort] / maxVal) * 600;
-                const y = 20 + (i * 50);
-                const color = i === 0 ? '#3b82f6' : i === 1 ? '#6366f1' : '#8b5cf6';
+            data.forEach((item, i) => {
+                const barWidth = (item[currentSort] / maxVal) * 180;
+                const y = 10 + (i * 35);
                 
-                svgHtml += `<rect x="150" y="${y}" width="${barWidth}" height="25" rx="4" fill="${color}" fill-opacity="0.8" />`;
-                svgHtml += `<text x="140" y="${y + 17}" text-anchor="end" class="bar-label">${item.nombre.split(' ')[0]}</text>`;
-                svgHtml += `<text x="${160 + barWidth}" y="${y + 17}" class="bar-value">${item[currentSort].toFixed(1)}${currentSort === 'eficiencia' ? '%' : ''}</text>`;
-                
-                if (i < sortedGlobal.length - 1) {
-                    const diff = i === 0 ? diff1 : diff2;
-                    svgHtml += `
-                        <line x1="150" y1="${y + 25}" x2="150" y2="${y + 50}" stroke="#333" stroke-dasharray="2" />
-                        <text x="160" y="${y + 42}" class="diff-label">▲ +${diff}% SUPERIOR</text>
-                    `;
-                }
+                svgHtml += `
+                    <rect x="80" y="${y}" width="${barWidth}" height="20" rx="4" fill="${color}" fill-opacity="${1 - (i * 0.2)}" />
+                    <text x="75" y="${y + 14}" text-anchor="end" class="bar-label">${item.nombre.split(' ')[0]}</text>
+                    <text x="${85 + barWidth}" y="${y + 14}" class="bar-value">${item[currentSort].toFixed(0)}${currentSort === 'eficiencia' ? '%' : ''}</text>
+                `;
             });
 
             svgHtml += `</svg>`;
@@ -294,6 +279,7 @@
             const key = keys[colIndex];
             tablesData[type].sort((a, b) => b[key] - a[key]);
             renderTable(type);
+            renderCategoryChart(type);
         }
 
         window.onload = fetchExcel;
