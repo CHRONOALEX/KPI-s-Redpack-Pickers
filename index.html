@@ -10,37 +10,31 @@
     <style>
         body { font-family: 'Lexend', sans-serif; background-color: #121212; color: #e2e8f0; }
         .dashboard-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; align-items: start; }
-        .table-container { background: #1e1e1e; width: 100%; overflow: visible; }
-        table { width: 100%; border-collapse: collapse; table-layout: auto; }
-        thead th { position: sticky; top: 0; background: #2d2d2d; color: #94a3b8; padding: 12px; text-align: left; font-size: 0.65rem; text-transform: uppercase; z-index: 10; border-bottom: 2px solid #404040; cursor: pointer; }
-        tbody td { padding: 12px; font-size: 0.75rem; color: #cbd5e1; border-bottom: 1px solid #2d2d2d; }
+        .table-container { background: #1e1e1e; width: 100%; }
+        table { width: 100%; border-collapse: collapse; table-layout: fixed; }
+        thead th { position: sticky; top: 0; background: #2d2d2d; color: #94a3b8; padding: 10px; text-align: left; font-size: 0.60rem; text-transform: uppercase; border-bottom: 2px solid #404040; cursor: pointer; }
+        tbody td { padding: 10px; font-size: 0.70rem; color: #cbd5e1; border-bottom: 1px solid #2d2d2d; }
         
-        .kpi-card { background: #1e1e1e; border-radius: 8px; border: 1px solid #333; display: flex; flex-direction: column; transition: all 0.3s ease; }
+        .kpi-card { background: #1e1e1e; border-radius: 8px; border: 1px solid #333; display: flex; flex-direction: column; }
         
-        /* Gold Glow Animation */
-        .golden-glow {
-            animation: gold-pulse 2s infinite;
-            border: 2px solid #eab308 !important;
-        }
-        @keyframes gold-pulse {
-            0% { box-shadow: 0 0 5px #eab308; }
-            50% { box-shadow: 0 0 20px #eab308; }
-            100% { box-shadow: 0 0 5px #eab308; }
+        /* Efecto Dorado solo en fila */
+        .perfect-row { 
+            border: 1px solid #eab308 !important; 
+            background: rgba(234, 179, 8, 0.08) !important;
+            box-shadow: inset 0 0 10px rgba(234, 179, 8, 0.1);
         }
 
-        .psp-header { padding: 12px; font-weight: 800; text-transform: uppercase; color: white; display: flex; justify-content: space-between; align-items: center; border-radius: 8px 8px 0 0; }
-        .bg-muelle { background-image: linear-gradient(90deg, #1e3a8a 0%, #3b82f6 50%, #1e3a8a 100%); }
-        .bg-etiquetado { background-image: linear-gradient(90deg, #581c87 0%, #a855f7 50%, #581c87 100%); }
-        .bg-inyeccion { background-image: linear-gradient(90deg, #7c2d12 0%, #f97316 50%, #7c2d12 100%); }
-        
-        .perfect-row { border: 2px solid #eab308 !important; background: rgba(234, 179, 8, 0.05) !important; }
+        .psp-header { padding: 10px; font-weight: 800; text-transform: uppercase; color: white; display: flex; justify-content: space-between; align-items: center; border-radius: 8px 8px 0 0; }
+        .bg-muelle { background-image: linear-gradient(90deg, #1e3a8a 0%, #3b82f6 100%); }
+        .bg-etiquetado { background-image: linear-gradient(90deg, #581c87 0%, #a855f7 100%); }
+        .bg-inyeccion { background-image: linear-gradient(90deg, #7c2d12 0%, #f97316 100%); }
         
         header { background-color: #630d0d; }
         .loading-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 1000; }
         
-        .bar-label { fill: #cbd5e1; font-weight: 700; font-size: 11px; }
-        .bar-value-text { fill: #ffffff; font-weight: 800; font-size: 10px; pointer-events: none; }
-        .comparison-text { fill: #22c55e; font-weight: 800; font-size: 9px; }
+        .bar-label { fill: #cbd5e1; font-weight: 600; font-size: 11px; }
+        .bar-value-text { fill: #ffffff; font-weight: 800; font-size: 10px; }
+        .comp-text { fill: #22c55e; font-weight: 700; font-size: 9px; }
     </style>
 </head>
 <body>
@@ -70,46 +64,44 @@
     </header>
 
     <main class="max-w-[1600px] mx-auto p-4 space-y-6">
-        <section id="top-section" class="grid grid-cols-3 gap-4"></section>
-
         <div class="dashboard-grid">
-            <div id="card-muelle" class="kpi-card">
+            <div class="kpi-card">
                 <div class="psp-header bg-muelle">
                     <span>1. MUELLE</span>
                     <span id="label-muelle" class="text-[10px] bg-black/20 px-2 py-1 rounded">0</span>
                 </div>
-                <div id="chart-muelle" class="w-full h-[140px] p-4 flex justify-center items-center bg-[#1a1a1a]"></div>
+                <div id="chart-muelle" class="w-full h-[150px] p-2 flex justify-center items-center bg-[#1a1a1a]"></div>
                 <div class="table-container">
                     <table id="table-muelle">
-                        <thead><tr><th onclick="sortTable('muelle', 0)">Nombre</th><th>Rango</th><th class="text-center">Rut</th><th class="text-center">Paq</th><th class="text-center">Err</th><th class="text-center">Ef%</th><th class="text-center">PPH</th></tr></thead>
+                        <thead><tr><th>Nombre</th><th>Rango</th><th class="text-center">Rut</th><th class="text-center">Ef%</th><th class="text-center">PPH</th></tr></thead>
                         <tbody id="body-muelle"></tbody>
                     </table>
                 </div>
             </div>
 
-            <div id="card-inyeccion" class="kpi-card">
+            <div class="kpi-card">
                 <div class="psp-header bg-inyeccion">
                     <span>2. INYECCIÓN</span>
                     <span id="label-inyeccion" class="text-[10px] bg-black/20 px-2 py-1 rounded">0</span>
                 </div>
-                <div id="chart-inyeccion" class="w-full h-[140px] p-4 flex justify-center items-center bg-[#1a1a1a]"></div>
+                <div id="chart-inyeccion" class="w-full h-[150px] p-2 flex justify-center items-center bg-[#1a1a1a]"></div>
                 <div class="table-container">
                     <table>
-                        <thead><tr><th onclick="sortTable('inyeccion', 0)">Nombre</th><th>Rango</th><th class="text-center">Paq</th><th class="text-center">Dañ</th><th class="text-center">Ef%</th><th class="text-center">PPH</th></tr></thead>
+                        <thead><tr><th>Nombre</th><th>Rango</th><th class="text-center">Paq</th><th class="text-center">Ef%</th><th class="text-center">PPH</th></tr></thead>
                         <tbody id="body-inyeccion"></tbody>
                     </table>
                 </div>
             </div>
 
-            <div id="card-etiquetado" class="kpi-card">
+            <div class="kpi-card">
                 <div class="psp-header bg-etiquetado">
                     <span>3. ETIQUETADO</span>
                     <span id="label-etiquetado" class="text-[10px] bg-black/20 px-2 py-1 rounded">0</span>
                 </div>
-                <div id="chart-etiquetado" class="w-full h-[140px] p-4 flex justify-center items-center bg-[#1a1a1a]"></div>
+                <div id="chart-etiquetado" class="w-full h-[150px] p-2 flex justify-center items-center bg-[#1a1a1a]"></div>
                 <div class="table-container">
                     <table>
-                        <thead><tr><th onclick="sortTable('etiquetado', 0)">Nombre</th><th>Rango</th><th class="text-center">Paq</th><th class="text-center">Err</th><th class="text-center">Ef%</th><th class="text-center">PPH</th></tr></thead>
+                        <thead><tr><th>Nombre</th><th>Rango</th><th class="text-center">Paq</th><th class="text-center">Ef%</th><th class="text-center">PPH</th></tr></thead>
                         <tbody id="body-etiquetado"></tbody>
                     </table>
                 </div>
@@ -152,51 +144,41 @@
         }
 
         function applyFilters() { processData(); }
-
-        function updateGlobalSort() {
-            currentSort = document.getElementById('global-sort').value;
-            processData();
-        }
-
-        function getEfColor(ef) {
-            if (ef >= 100) return 'text-emerald-500';
-            if (ef >= 99) return 'text-yellow-400';
-            return 'text-red-500';
-        }
+        function updateGlobalSort() { currentSort = document.getElementById('global-sort').value; processData(); }
 
         function renderMiniChart(type) {
             const container = document.getElementById(`chart-${type}`);
-            const card = document.getElementById(`card-${type}`);
-            const data = tablesData[type].slice(0, 3);
-            if (data.length === 0) { container.innerHTML = ''; return; }
+            const data = tablesData[type]; 
+            const top3 = data.slice(0, 3);
+            if (top3.length === 0) { container.innerHTML = ''; return; }
 
-            // Lógica de Glow Dorado
-            const isTopPerfect = data[0].eficiencia >= 100;
-            if (isTopPerfect) card.classList.add('golden-glow');
-            else card.classList.remove('golden-glow');
-
-            const maxVal = data[0][currentSort];
-            let svg = `<svg width="100%" height="130" viewBox="0 0 350 130">`;
+            const maxVal = top3[0][currentSort] || 1;
+            // viewBox aumentado para dar más espacio horizontal
+            let svg = `<svg width="100%" height="100%" viewBox="0 0 400 130" preserveAspectRatio="none">`;
             
-            data.forEach((item, i) => {
+            top3.forEach((item, i) => {
                 const isPerfect = item.eficiencia >= 100;
                 const barColor = isPerfect ? '#eab308' : (type === 'muelle' ? '#3b82f6' : type === 'inyeccion' ? '#f97316' : '#a855f7');
-                const width = maxVal > 0 ? (item[currentSort] / maxVal) * 200 : 0;
+                
+                // Ancho dinámico ajustado al contenedor (max 220 de largo para dejar espacio a la etiqueta de diff)
+                const width = (item[currentSort] / maxVal) * 200;
                 const y = i * 40; 
                 
                 svg += `
-                    <text x="5" y="${y + 15}" class="bar-label">${item.nombre.split(' ')[0]}</text>
-                    <rect x="0" y="${y + 22}" width="${width < 50 ? 50 : width}" height="22" rx="4" fill="${barColor}" fill-opacity="0.9" />
-                    <text x="${width < 50 ? 55 : width - 5}" y="${y + 37}" text-anchor="${width < 50 ? 'start' : 'end'}" class="bar-value-text">${item[currentSort].toFixed(2)}</text>
+                    <text x="0" y="${y + 15}" class="bar-label">${item.nombre.split(' ')[0]}</text>
+                    <rect x="70" y="${y + 5}" width="${width < 20 ? 20 : width}" height="15" rx="2" fill="${barColor}" fill-opacity="0.9" />
+                    <text x="${70 + width + 5}" y="${y + 17}" class="bar-value-text">${item[currentSort].toFixed(1)}</text>
                 `;
 
-                // Comparativa contra el 2do lugar (solo en la primera fila)
-                if (i === 0 && data.length > 1) {
-                    const diff = (item.eficiencia - data[1].eficiencia).toFixed(2);
-                    svg += `
-                        <path d="M ${width + 10} ${y + 33} l 5 -8 l 5 8 Z" fill="#22c55e" />
-                        <text x="${width + 22}" y="${y + 35}" class="comparison-text">+${diff}%</text>
-                    `;
+                // Comparativa: Buscar al de abajo (data[i+1])
+                if (data[i+1]) {
+                    const diff = (item[currentSort] - data[i+1][currentSort]);
+                    if (diff > 0) {
+                        svg += `
+                            <path d="M ${70 + width + 40} ${y + 12} l 4 -6 l 4 6 Z" fill="#22c55e" />
+                            <text x="${70 + width + 48}" y="${y + 17}" class="comp-text">+${diff.toFixed(1)}</text>
+                        `;
+                    }
                 }
             });
             svg += `</svg>`;
@@ -245,39 +227,6 @@
                 renderTable(type);
                 renderMiniChart(type);
             });
-            renderTops();
-        }
-
-        function renderTops() {
-            const container = document.getElementById('top-section');
-            container.innerHTML = "";
-            ['muelle', 'inyeccion', 'etiquetado'].forEach((type) => {
-                const top = tablesData[type][0];
-                if (!top) return;
-                const isPerfect = top.eficiencia >= 100;
-                const color = isPerfect ? '#eab308' : (type === 'muelle' ? '#3b82f6' : type === 'inyeccion' ? '#f97316' : '#a855f7');
-                container.innerHTML += `
-                    <div class="kpi-card p-4 border-l-4 ${isPerfect ? 'golden-glow' : ''}" style="border-color: ${color}">
-                        <div class="flex justify-between mb-3">
-                            <div>
-                                <h4 class="text-white font-black text-sm uppercase">${isPerfect ? '⭐' : '🥇'} ${top.nombre}</h4>
-                                <p class="text-[9px] text-gray-500 font-bold">${type.toUpperCase()}</p>
-                            </div>
-                            <span class="text-[10px] bg-white/10 text-white px-2 py-1 rounded h-fit font-bold">#1 ${currentSort.toUpperCase()}</span>
-                        </div>
-                        <div class="grid grid-cols-2 gap-4">
-                            <div>
-                                <p class="text-[10px] text-gray-400 mb-1">EFICIENCIA</p>
-                                <p class="text-lg font-extrabold text-white">${top.eficiencia.toFixed(2)}%</p>
-                            </div>
-                            <div>
-                                <p class="text-[10px] text-gray-400 mb-1">PPH (PAQ/HR)</p>
-                                <p class="text-lg font-extrabold text-white">${top.pph}</p>
-                            </div>
-                        </div>
-                    </div>
-                `;
-            });
         }
 
         function renderTable(type) {
@@ -287,27 +236,15 @@
             
             body.innerHTML = tablesData[type].map(s => {
                 const isPerfect = s.eficiencia >= 100;
-                const rowClass = isPerfect ? 'perfect-row' : '';
-                const efColor = getEfColor(s.eficiencia);
-                
                 return `
-                    <tr class="${rowClass}">
-                        <td class="font-bold text-white">${isPerfect ? '⭐ ' : ''}${s.nombre}</td>
+                    <tr class="${isPerfect ? 'perfect-row' : ''}">
+                        <td class="font-bold text-white">${s.nombre}</td>
                         <td class="text-[10px] text-gray-400">${s.rango}</td>
                         ${type === 'muelle' ? `<td class="text-center font-bold text-blue-400">${s.rutas}</td>` : ''}
-                        <td class="text-center font-bold text-emerald-400">${s.paquetes.toLocaleString()}</td>
-                        <td class="text-center text-red-500 font-bold">${s.errores}</td>
-                        <td class="text-center ${efColor} font-bold">${s.eficiencia.toFixed(2)}%</td>
+                        <td class="text-center ${isPerfect ? 'text-yellow-400' : 'text-emerald-400'} font-bold">${s.eficiencia.toFixed(2)}%</td>
                         <td class="text-center text-white font-bold">${s.pph}</td>
                     </tr>`;
             }).join('');
-        }
-
-        function sortTable(type, colIndex) {
-            const keys = type === 'muelle' ? ['nombre', 'rango', 'rutas', 'paquetes', 'errores', 'eficiencia', 'pph'] : ['nombre', 'rango', 'paquetes', 'errores', 'eficiencia', 'pph'];
-            const key = keys[colIndex];
-            tablesData[type].sort((a, b) => b[key] - a[key]);
-            renderTable(type);
         }
 
         window.onload = fetchExcel;
