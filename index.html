@@ -9,8 +9,8 @@
     <link href="https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;600;800&display=swap" rel="stylesheet">
     <style>
         body { font-family: 'Lexend', sans-serif; background-color: #121212; color: #e2e8f0; }
-        .dashboard-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; }
-        .table-container { background: #1e1e1e; width: 100%; max-height: 400px; overflow-y: auto; }
+        .dashboard-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; align-items: start; }
+        .table-container { background: #1e1e1e; width: 100%; overflow: hidden; }
         table { width: 100%; border-collapse: collapse; table-layout: auto; }
         thead th { position: sticky; top: 0; background: #2d2d2d; color: #94a3b8; padding: 8px; text-align: left; font-size: 0.65rem; text-transform: uppercase; z-index: 10; border-bottom: 2px solid #404040; cursor: pointer; }
         tbody td { padding: 8px; font-size: 0.75rem; color: #cbd5e1; border-bottom: 1px solid #2d2d2d; }
@@ -27,8 +27,8 @@
         header { background-color: #630d0d; }
         .loading-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 1000; }
         
-        .bar-label { fill: #94a3b8; font-weight: 600; }
-        .bar-value { fill: #fff; font-weight: 800; }
+        .bar-label { fill: #cbd5e1; font-weight: 700; font-size: 10px; }
+        .bar-value-text { fill: #ffffff; font-weight: 800; font-size: 9px; pointer-events: none; }
     </style>
 </head>
 <body>
@@ -72,7 +72,7 @@
                     <span>1. MUELLE</span>
                     <span id="label-muelle" class="text-[10px] bg-black/20 px-2 py-1 rounded">0</span>
                 </div>
-                <div id="chart-muelle" class="w-full h-[100px] p-2 bg-[#1a1a1a]"></div>
+                <div id="chart-muelle" class="w-full h-[120px] p-2 bg-[#1a1a1a]"></div>
                 <div class="table-container">
                     <table id="table-muelle">
                         <thead><tr><th onclick="sortTable('muelle', 0)">Nombre</th><th>Rango</th><th class="text-center">Rut</th><th class="text-center">Paq</th><th class="text-center">Err</th><th class="text-center">Ef%</th><th class="text-center">PPH</th></tr></thead>
@@ -86,7 +86,7 @@
                     <span>2. INYECCIÓN</span>
                     <span id="label-inyeccion" class="text-[10px] bg-black/20 px-2 py-1 rounded">0</span>
                 </div>
-                <div id="chart-inyeccion" class="w-full h-[100px] p-2 bg-[#1a1a1a]"></div>
+                <div id="chart-inyeccion" class="w-full h-[120px] p-2 bg-[#1a1a1a]"></div>
                 <div class="table-container">
                     <table>
                         <thead><tr><th onclick="sortTable('inyeccion', 0)">Nombre</th><th>Rango</th><th class="text-center">Paq</th><th class="text-center">Dañ</th><th class="text-center">Ef%</th><th class="text-center">PPH</th></tr></thead>
@@ -100,7 +100,7 @@
                     <span>3. ETIQUETADO</span>
                     <span id="label-etiquetado" class="text-[10px] bg-black/20 px-2 py-1 rounded">0</span>
                 </div>
-                <div id="chart-etiquetado" class="w-full h-[100px] p-2 bg-[#1a1a1a]"></div>
+                <div id="chart-etiquetado" class="w-full h-[120px] p-2 bg-[#1a1a1a]"></div>
                 <div class="table-container">
                     <table>
                         <thead><tr><th onclick="sortTable('etiquetado', 0)">Nombre</th><th>Rango</th><th class="text-center">Paq</th><th class="text-center">Err</th><th class="text-center">Ef%</th><th class="text-center">PPH</th></tr></thead>
@@ -153,9 +153,9 @@
         }
 
         function getEfColor(ef) {
-            if (ef >= 100) return 'text-emerald-500'; // 100% Verde
-            if (ef >= 99) return 'text-yellow-400';   // 99% - 99.9% Amarillo
-            return 'text-red-500';                    // < 99% Rojo
+            if (ef >= 100) return 'text-emerald-500';
+            if (ef >= 99) return 'text-yellow-400';
+            return 'text-red-500';
         }
 
         function renderMiniChart(type) {
@@ -164,16 +164,19 @@
             if (data.length === 0) { container.innerHTML = ''; return; }
 
             const maxVal = data[0][currentSort];
-            let svg = `<svg width="100%" height="90" viewBox="0 0 250 90" preserveAspectRatio="none">`;
+            let svg = `<svg width="100%" height="110" viewBox="0 0 300 110" preserveAspectRatio="none">`;
             const barColor = type === 'muelle' ? '#3b82f6' : type === 'inyeccion' ? '#f97316' : '#a855f7';
             
             data.forEach((item, i) => {
-                const width = maxVal > 0 ? (item[currentSort] / maxVal) * 150 : 0;
-                const y = i * 25;
+                // width: 0 a 200px para el relleno
+                const width = maxVal > 0 ? (item[currentSort] / maxVal) * 200 : 0;
+                const y = i * 35;
+                const displayVal = item[currentSort].toFixed(2);
+                
                 svg += `
-                    <rect x="70" y="${y}" width="${width}" height="15" rx="2" fill="${barColor}" fill-opacity="0.8" />
-                    <text x="65" y="${y + 12}" text-anchor="end" class="bar-label" style="font-size: 9px;">${item.nombre.split(' ')[0]}</text>
-                    <text x="${75 + width}" y="${y + 12}" class="bar-value" style="font-size: 9px;">${item[currentSort].toFixed(1)}</text>
+                    <text x="5" y="${y + 13}" class="bar-label">${item.nombre.split(' ')[0]}</text>
+                    <rect x="0" y="${y + 18}" width="${width < 40 ? 40 : width}" height="18" rx="2" fill="${barColor}" fill-opacity="0.9" />
+                    <text x="${width < 40 ? 45 : width - 5}" y="${y + 31}" text-anchor="${width < 40 ? 'start' : 'end'}" class="bar-value-text">${displayVal}</text>
                 `;
             });
             svg += `</svg>`;
